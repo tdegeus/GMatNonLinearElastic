@@ -1,0 +1,9 @@
+prefix=@CMAKE_INSTALL_PREFIX@
+exec_prefix=${prefix}
+
+Name: GMatNonLinearElastic
+Description: Non-linear elastic material model
+Requires:
+Version: @GMATNONLINEARELASTIC_VERSION@
+Libs:
+Cflags: -I${prefix}/@GMATNONLINEARELASTIC_INCLUDE_DIR@

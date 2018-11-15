@@ -1,2 +1,3 @@
-# GMatNonLinearElastic
-Non-linear elastic material model
+# NonLinearElastic
+
+Non-linear elastic material model.
