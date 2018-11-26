@@ -1,6 +1,6 @@
 /* =================================================================================================
 
-(c - MIT) T.W.J. de Geus (Tom) | tom@geus.me | www.geus.me | github.com/tdegeus/ElastoPlasticQPot
+(c - MIT) T.W.J. de Geus (Tom) | tom@geus.me | www.geus.me | github.com/tdegeus/GMatNonLinearElastic
 
 ================================================================================================= */
 
@@ -127,12 +127,25 @@ inline T4 I4d()
 
 // -------------------------------------------------------------------------------------------------
 
+inline NonLinearElastic::NonLinearElastic(double kappa, double sig0, double eps0, double m) :
+  m_kappa(kappa), m_sig0(sig0), m_eps0(eps0), m_m(m) {}
+
+inline double NonLinearElastic::kappa() const { return m_kappa; }
+
+inline double NonLinearElastic::sig0() const { return m_sig0; }
+
+inline double NonLinearElastic::eps0() const { return m_eps0; }
+
+inline double NonLinearElastic::m() const { return m_m; }
+
+// -------------------------------------------------------------------------------------------------
+
 inline T2 NonLinearElastic::Sig(const T2 &Eps) const
 {
   // define identity tensor
   T2 I = Cartesian3d::I();
 
-  // decompose strain, compute equivalent strain
+  // decompose strain
   double epsm  = trace(Eps)/3.;
   auto   Epsd  = Eps - epsm * I;
   double epseq = std::sqrt(2./3.*ddot22(Epsd,Epsd));;
@@ -152,14 +165,14 @@ inline T2 NonLinearElastic::Sig(const T2 &Eps) const
 
 inline std::tuple<T2,T4> NonLinearElastic::Tangent(const T2 &Eps) const
 {
-  // define identity tensor, allocate result
+  // define identity tensor
   T2 I   = Cartesian3d::I();
   T4 II  = Cartesian3d::II();
   T4 I4d = Cartesian3d::I4d();
   T2 Sig;
   T4 C4;
 
-  // decompose strain, compute equivalent strain
+  // decompose strain
   double epsm  = trace(Eps)/3.;
   auto   Epsd  = Eps - epsm * I;
   double epseq = std::sqrt(2./3.*ddot22(Epsd,Epsd));;
@@ -213,6 +226,20 @@ inline Matrix::Matrix(size_t nelem, size_t nip, double kappa, double sig0, doubl
   m_eps0  = xt::ones<double>({nelem, nip}) * eps0;
   m_m     = xt::ones<double>({nelem, nip}) * m;
 }
+
+// -------------------------------------------------------------------------------------------------
+
+inline size_t Matrix::nelem() const { return m_nelem; }
+
+inline size_t Matrix::nip() const { return m_nip; }
+
+inline xt::xtensor<double,2> Matrix::kappa() const { return m_kappa; }
+
+inline xt::xtensor<double,2> Matrix::sig0() const { return m_sig0; }
+
+inline xt::xtensor<double,2> Matrix::eps0() const { return m_eps0; }
+
+inline xt::xtensor<double,2> Matrix::m() const { return m_m; }
 
 // -------------------------------------------------------------------------------------------------
 

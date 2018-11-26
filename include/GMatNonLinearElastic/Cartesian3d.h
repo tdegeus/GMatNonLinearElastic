@@ -39,14 +39,13 @@ public:
 
   // constructors
   NonLinearElastic() = default;
-  NonLinearElastic(double kappa, double sig0, double eps0, double m) :
-    m_kappa(kappa), m_sig0(sig0), m_eps0(eps0), m_m(m) {};
+  NonLinearElastic(double kappa, double sig0, double eps0, double m);
 
   // return parameters
-  double kappa() const { return m_kappa; };
-  double sig0()  const { return m_sig0;  };
-  double eps0()  const { return m_eps0;  };
-  double m()     const { return m_m;     };
+  double kappa() const;
+  double sig0() const;
+  double eps0() const;
+  double m() const;
 
   // compute stress
   T2 Sig(const T2 &Eps) const;
@@ -74,14 +73,14 @@ public:
   Matrix(size_t nelem, size_t nip, double kappa, double sig0, double eps0, double m);
 
   // return shape
-  size_t nelem() const { return m_nelem; };
-  size_t nip()   const { return m_nip;   };
+  size_t nelem() const;
+  size_t nip() const;
 
   // parameters
-  xt::xtensor<double,2> kappa() const { return m_kappa; };
-  xt::xtensor<double,2> sig0()  const { return m_sig0;  };
-  xt::xtensor<double,2> eps0()  const { return m_eps0;  };
-  xt::xtensor<double,2> m()     const { return m_m;     };
+  xt::xtensor<double,2> kappa() const;
+  xt::xtensor<double,2> sig0() const;
+  xt::xtensor<double,2> eps0() const;
+  xt::xtensor<double,2> m() const;
 
   // check that a type has been set everywhere
   void check() const;
