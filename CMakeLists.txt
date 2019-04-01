@@ -20,6 +20,8 @@ set(headers
   include/GMatNonLinearElastic/config.h
   include/GMatNonLinearElastic/Cartesian3d.h
   include/GMatNonLinearElastic/Cartesian3d.hpp
+  include/GMatNonLinearElastic/Cartesian3d_NonLinearElastic.hpp
+  include/GMatNonLinearElastic/Cartesian3d_Matrix.hpp
 )
 
 # automatically parse the version number

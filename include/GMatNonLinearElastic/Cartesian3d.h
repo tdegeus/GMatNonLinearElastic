@@ -7,69 +7,60 @@
 #ifndef GMATNONLINEARELASTIC_CARTESIAN3D_H
 #define GMATNONLINEARELASTIC_CARTESIAN3D_H
 
-// -------------------------------------------------------------------------------------------------
-
 #include "config.h"
-
-// =================================================================================================
 
 namespace GMatNonLinearElastic {
 namespace Cartesian3d {
 
 // -------------------------------------------------------------------------------------------------
 
-// Aliases
+// Alias
 
 using T2 = xt::xtensor_fixed<double, xt::xshape<3,3>>;
 using T4 = xt::xtensor_fixed<double, xt::xshape<3,3,3,3>>;
 
 // Tensor operations
 
-template <class T> double trace (const T& A);
-template <class T> double ddot22(const T& A, const T& B);
+template <class T> inline double trace (const T& A);
+template <class T> inline double ddot22(const T& A, const T& B);
 
 // Unit tensors
 
-T2 I();
-T4 II();
-T4 I4();
-T4 I4rt();
-T4 I4s();
-T4 I4d();
+inline T2 I();
+inline T4 II();
+inline T4 I4();
+inline T4 I4rt();
+inline T4 I4s();
+inline T4 I4d();
 
 // -------------------------------------------------------------------------------------------------
 
 // Hydrostatic stress/strain
 
-double hydrostatic(const T2& A);
+inline double Hydrostatic(const T2& A);
+
+// Deviatoric part of a tensor
+
+inline T2 Deviatoric(const T2& A);
 
 // Equivalent deviatoric stress/stress
 
-double sigeq(const T2& Sig);
-double epseq(const T2& Eps);
-
-// Deviator
-
-void deviator(const T2& A, T2& Ad);
-T2   Deviator(const T2& A);
+inline double Sigeq(const T2& Sig);
+inline double Epseq(const T2& Eps);
 
 // Matrix version of the functions above (no allocation)
 
-void hydrostatic(const xt::xtensor<double,4>& A, xt::xtensor<double,2>& Am);
-
-void sigeq(const xt::xtensor<double,4>& Sig, xt::xtensor<double,2>& sigd);
-void epseq(const xt::xtensor<double,4>& Eps, xt::xtensor<double,2>& epsd);
-
-void deviator(const xt::xtensor<double,4>& A, xt::xtensor<double,4>& Ad);
+inline void hydrostatic(const xt::xtensor<double,4>& A, xt::xtensor<double,2>& Am);
+inline void deviatoric(const xt::xtensor<double,4>& A, xt::xtensor<double,4>& Ad);
+inline void sigeq(const xt::xtensor<double,4>& A, xt::xtensor<double,2>& Aeq);
+inline void epseq(const xt::xtensor<double,4>& A, xt::xtensor<double,2>& Aeq);
 
 // Auto-allocation allocation of the functions above
 
-xt::xtensor<double,2> Hydrostatic(const xt::xtensor<double,4>& A);
-
-xt::xtensor<double,2> Sigeq(const xt::xtensor<double,4>& Sig);
-xt::xtensor<double,2> Epseq(const xt::xtensor<double,4>& Eps);
-
-xt::xtensor<double,4> Deviator(const xt::xtensor<double,4>& Sig);
+inline xt::xtensor<double,2> Hydrostatic(const xt::xtensor<double,4>& A);
+inline xt::xtensor<double,4> Deviatoric(const xt::xtensor<double,4>& A);
+inline xt::xtensor<double,2> Sigeq(const xt::xtensor<double,4>& Sig);
+inline xt::xtensor<double,2> Epseq(const xt::xtensor<double,4>& Eps);
 
 // -------------------------------------------------------------------------------------------------
 
@@ -87,14 +78,18 @@ public:
   double eps0() const;
   double m() const;
 
-  // Stress
-  void stress(const T2& Eps, T2& Sig) const;
+  // Stress (no allocation, overwrites "Sig")
+  template <class T>
+  void stress(const T2& Eps, T&& Sig) const;
 
-  // Stress & tangent
-  void tangent(const T2& Eps, T2& Sig, T4& C) const;
-
-  // Auto-allocation of the functions above
+  // Stress (auto allocation)
   T2 Stress(const T2& Eps) const;
+
+  // Stress & Tangent (no allocation, overwrites "Sig" and "C")
+  template <class T, class S>
+  void tangent(const T2& Eps, T&& Sig, S&& C) const;
+
+  // Stress & Tangent (auto allocation)
   std::tuple<T2,T4> Tangent(const T2& Eps) const;
 
 private:
@@ -103,6 +98,15 @@ private:
   double m_sig0;
   double m_eps0;
   double m_m;
+};
+
+// -------------------------------------------------------------------------------------------------
+
+struct Type {
+  enum Value {
+    Unset,
+    NonLinearElastic,
+  };
 };
 
 // -------------------------------------------------------------------------------------------------
@@ -121,6 +125,10 @@ public:
 
   size_t nelem() const;
   size_t nip() const;
+
+  // Type
+
+  xt::xtensor<size_t,2> type() const;
 
   // Parameters
 
@@ -144,9 +152,14 @@ public:
 
   // Set parameters for a batch of points
 
-  void set(const xt::xtensor<size_t,2> &I, double kappa, double sig0, double eps0, double m);
+  void setNonLinearElastic(
+    const xt::xtensor<size_t,2>& I,
+    double kappa,
+    double sig0,
+    double eps0,
+    double m);
 
-  // Compute (no allocation)
+  // Compute (no allocation, overwrites last argument)
 
   void stress(
     const xt::xtensor<double,4>& Eps,
@@ -167,17 +180,22 @@ public:
 
 private:
 
-  // Parameters
-  xt::xtensor<int   ,2> m_set;
-  xt::xtensor<double,2> m_kappa;
-  xt::xtensor<double,2> m_sig0;
-  xt::xtensor<double,2> m_eps0;
-  xt::xtensor<double,2> m_m;
+  // Material vectors
+  std::vector<NonLinearElastic> m_NonLinearElastic;
+
+  // Identifiers for each matrix entry
+  xt::xtensor<size_t,2> m_type;  // type (e.g. "Type::Elastic")
+  xt::xtensor<size_t,2> m_index; // index from the relevant material vector (e.g. "m_Elastic")
 
   // Shape
   size_t m_nelem;
   size_t m_nip;
   static const size_t m_ndim=3;
+
+  // Internal check
+  bool m_allSet=false;
+  void checkAllSet();
+
 };
 
 // -------------------------------------------------------------------------------------------------
@@ -187,6 +205,8 @@ private:
 // -------------------------------------------------------------------------------------------------
 
 #include "Cartesian3d.hpp"
+#include "Cartesian3d_NonLinearElastic.hpp"
+#include "Cartesian3d_Matrix.hpp"
 
 // -------------------------------------------------------------------------------------------------
 
