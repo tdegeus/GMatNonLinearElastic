@@ -37,9 +37,26 @@
 
 // -------------------------------------------------------------------------------------------------
 
+#ifndef NDEBUG
+#define GMATNONLINEARELASTIC_ENABLE_ASSERT
+#endif
+
+#ifdef GMATNONLINEARELASTIC_ENABLE_ASSERT
+#define GMATNONLINEARELASTIC_ASSERT(expr) GMATNONLINEARELASTIC_ASSERT_IMPL(expr, __FILE__, __LINE__)
+#define GMATNONLINEARELASTIC_ASSERT_IMPL(expr, file, line)                                                                \
+    if (!(expr))                                                                                                          \
+    {                                                                                                                     \
+        throw std::runtime_error(std::string(file) + ':' + std::to_string(line) + ": assertion failed (" #expr ") \n\t"); \
+    }
+#else
+#define GMATNONLINEARELASTIC_ASSERT(expr)
+#endif
+
+// -------------------------------------------------------------------------------------------------
+
 #define GMATNONLINEARELASTIC_WORLD_VERSION 0
 #define GMATNONLINEARELASTIC_MAJOR_VERSION 0
-#define GMATNONLINEARELASTIC_MINOR_VERSION 1
+#define GMATNONLINEARELASTIC_MINOR_VERSION 2
 
 #define GMATNONLINEARELASTIC_VERSION_AT_LEAST(x,y,z) \
   (GMATNONLINEARELASTIC_WORLD_VERSION>x || (GMATNONLINEARELASTIC_WORLD_VERSION>=x && \
