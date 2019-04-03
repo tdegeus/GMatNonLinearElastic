@@ -138,6 +138,7 @@ py::class_<SM::Matrix>(sm, "Matrix")
     py::arg("eps0"),
     py::arg("m"))
 
+  .def("ndim", &SM::Matrix::ndim)
   .def("nelem", &SM::Matrix::nelem)
   .def("nip", &SM::Matrix::nip)
 

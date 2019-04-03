@@ -24,6 +24,9 @@ using T4 = xt::xtensor_fixed<double, xt::xshape<3,3,3,3>>;
 template <class T> inline double trace (const T& A);
 template <class T> inline double ddot22(const T& A, const T& B);
 
+template <class T2, class T4>
+inline void dyadic22(const T2& A, const T2& B, T4& C);
+
 // Unit tensors
 
 inline T2 I();
@@ -123,6 +126,7 @@ public:
 
   // Shape
 
+  size_t ndim() const;
   size_t nelem() const;
   size_t nip() const;
 
