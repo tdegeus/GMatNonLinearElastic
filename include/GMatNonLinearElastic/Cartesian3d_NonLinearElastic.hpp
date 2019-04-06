@@ -50,12 +50,12 @@ inline double NonLinearElastic::m() const
 // -------------------------------------------------------------------------------------------------
 
 template <class T>
-inline void NonLinearElastic::stress(const T2& Eps, T&& Sig) const
+inline void NonLinearElastic::stress(const Tensor2& Eps, T&& Sig) const
 {
   auto I     = Cartesian3d::I();
   auto epsm  = trace(Eps) / 3.0;
   auto Epsd  = Eps - epsm * I;
-  auto epseq = std::sqrt(2.0/3.0 * ddot22(Epsd,Epsd));;
+  auto epseq = std::sqrt(2.0/3.0 * A2_ddot_B2(Epsd,Epsd));;
 
   if ( epseq != 0.0 )
   {
@@ -69,9 +69,9 @@ inline void NonLinearElastic::stress(const T2& Eps, T&& Sig) const
 
 // -------------------------------------------------------------------------------------------------
 
-inline T2 NonLinearElastic::Stress(const T2& Eps) const
+inline Tensor2 NonLinearElastic::Stress(const Tensor2& Eps) const
 {
-  T2 Sig;
+  Tensor2 Sig;
   this->stress(Eps, Sig);
   return Sig;
 }
@@ -79,14 +79,14 @@ inline T2 NonLinearElastic::Stress(const T2& Eps) const
 // -------------------------------------------------------------------------------------------------
 
 template <class T, class S>
-inline void NonLinearElastic::tangent(const T2& Eps, T&& Sig, S&& C) const
+inline void NonLinearElastic::tangent(const Tensor2& Eps, T&& Sig, S&& C) const
 {
   auto I     = Cartesian3d::I();
   auto II    = Cartesian3d::II();
   auto I4d   = Cartesian3d::I4d();
   auto epsm  = trace(Eps) / 3.0;
   auto Epsd  = Eps - epsm * I;
-  auto epseq = std::sqrt(2.0/3.0 * ddot22(Epsd,Epsd));
+  auto epseq = std::sqrt(2.0/3.0 * A2_ddot_B2(Epsd,Epsd));
 
   if ( epseq != 0.0 )
   {
@@ -99,13 +99,13 @@ inline void NonLinearElastic::tangent(const T2& Eps, T&& Sig, S&& C) const
 
   if ( epseq != 0.0 )
   {
-    T4 out;
-    dyadic22(Epsd, Epsd, out);
-    out *= 2./3. * (m_m-1.) * std::pow(epseq,m_m-3.);
-    out += std::pow(epseq, m_m-1.) * I4d;
-    out *= 2./3. * m_sig0 / std::pow(m_eps0,m_m);
-    out += m_kappa * II;
-    xt::noalias(C) = out;
+    Tensor4 K;
+    A2_dyadic_B2(Epsd, Epsd, K);
+    K *= 2./3. * (m_m-1.) * std::pow(epseq,m_m-3.);
+    K += std::pow(epseq, m_m-1.) * I4d;
+    K *= 2./3. * m_sig0 / std::pow(m_eps0,m_m);
+    K += m_kappa * II;
+    xt::noalias(C) = K;
   }
   else
   {
@@ -115,10 +115,10 @@ inline void NonLinearElastic::tangent(const T2& Eps, T&& Sig, S&& C) const
 
 // -------------------------------------------------------------------------------------------------
 
-inline std::tuple<T2,T4> NonLinearElastic::Tangent(const T2& Eps) const
+inline std::tuple<Tensor2,Tensor4> NonLinearElastic::Tangent(const Tensor2& Eps) const
 {
-  T2 Sig;
-  T4 C;
+  Tensor2 Sig;
+  Tensor4 C;
   this->tangent(Eps, Sig, C);
   return std::make_tuple(Sig, C);
 }

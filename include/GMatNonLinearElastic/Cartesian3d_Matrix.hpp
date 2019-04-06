@@ -140,7 +140,7 @@ inline xt::xtensor<double,4> Matrix::I() const
   xt::xtensor<double,4> out = xt::empty<double>({m_nelem, m_nip, m_ndim, m_ndim});
   #pragma omp parallel
   {
-    T2 unit = Cartesian3d::I();
+    Tensor2 unit = Cartesian3d::I();
     #pragma omp for
     for (size_t e = 0; e < m_nelem; ++e) {
       for (size_t q = 0; q < m_nip; ++q) {
@@ -159,7 +159,7 @@ inline xt::xtensor<double,6> Matrix::II() const
   xt::xtensor<double,6> out = xt::empty<double>({m_nelem, m_nip, m_ndim, m_ndim, m_ndim, m_ndim});
   #pragma omp parallel
   {
-    T4 unit = Cartesian3d::II();
+    Tensor4 unit = Cartesian3d::II();
     #pragma omp for
     for (size_t e = 0; e < m_nelem; ++e) {
       for (size_t q = 0; q < m_nip; ++q) {
@@ -178,7 +178,7 @@ inline xt::xtensor<double,6> Matrix::I4() const
   xt::xtensor<double,6> out = xt::empty<double>({m_nelem, m_nip, m_ndim, m_ndim, m_ndim, m_ndim});
   #pragma omp parallel
   {
-    T4 unit = Cartesian3d::I4();
+    Tensor4 unit = Cartesian3d::I4();
     #pragma omp for
     for (size_t e = 0; e < m_nelem; ++e) {
       for (size_t q = 0; q < m_nip; ++q) {
@@ -197,7 +197,7 @@ inline xt::xtensor<double,6> Matrix::I4rt() const
   xt::xtensor<double,6> out = xt::empty<double>({m_nelem, m_nip, m_ndim, m_ndim, m_ndim, m_ndim});
   #pragma omp parallel
   {
-    T4 unit = Cartesian3d::I4rt();
+    Tensor4 unit = Cartesian3d::I4rt();
     #pragma omp for
     for (size_t e = 0; e < m_nelem; ++e) {
       for (size_t q = 0; q < m_nip; ++q) {
@@ -216,7 +216,7 @@ inline xt::xtensor<double,6> Matrix::I4s() const
   xt::xtensor<double,6> out = xt::empty<double>({m_nelem, m_nip, m_ndim, m_ndim, m_ndim, m_ndim});
   #pragma omp parallel
   {
-    T4 unit = Cartesian3d::I4s();
+    Tensor4 unit = Cartesian3d::I4s();
     #pragma omp for
     for (size_t e = 0; e < m_nelem; ++e) {
       for (size_t q = 0; q < m_nip; ++q) {
@@ -235,7 +235,7 @@ inline xt::xtensor<double,6> Matrix::I4d() const
   xt::xtensor<double,6> out = xt::empty<double>({m_nelem, m_nip, m_ndim, m_ndim, m_ndim, m_ndim});
   #pragma omp parallel
   {
-    T4 unit = Cartesian3d::I4d();
+    Tensor4 unit = Cartesian3d::I4d();
     #pragma omp for
     for (size_t e = 0; e < m_nelem; ++e) {
       for (size_t q = 0; q < m_nip; ++q) {
