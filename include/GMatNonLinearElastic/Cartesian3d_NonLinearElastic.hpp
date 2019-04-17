@@ -52,7 +52,7 @@ inline double NonLinearElastic::m() const
 template <class T>
 inline void NonLinearElastic::stress(const Tensor2& Eps, T&& Sig) const
 {
-  auto I     = Cartesian3d::I();
+  auto I     = Cartesian3d::I2();
   auto epsm  = trace(Eps) / 3.0;
   auto Epsd  = Eps - epsm * I;
   auto epseq = std::sqrt(2.0/3.0 * A2_ddot_B2(Epsd,Epsd));;
@@ -81,7 +81,7 @@ inline Tensor2 NonLinearElastic::Stress(const Tensor2& Eps) const
 template <class T, class S>
 inline void NonLinearElastic::tangent(const Tensor2& Eps, T&& Sig, S&& C) const
 {
-  auto I     = Cartesian3d::I();
+  auto I     = Cartesian3d::I2();
   auto II    = Cartesian3d::II();
   auto I4d   = Cartesian3d::I4d();
   auto epsm  = trace(Eps) / 3.0;
