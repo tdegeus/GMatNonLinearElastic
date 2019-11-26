@@ -57,13 +57,15 @@ inline void NonLinearElastic::stress(const Tensor2& Eps, T&& Sig) const
   auto Epsd  = Eps - epsm * I;
   auto epseq = std::sqrt(2.0/3.0 * A2_ddot_B2(Epsd,Epsd));;
 
-  if ( epseq != 0.0 )
+  if (epseq != 0.0)
   {
-    xt::noalias(Sig) = 3.*m_kappa*epsm*I + 2./3.*m_sig0/std::pow(m_eps0,m_m)*std::pow(epseq,m_m-1.)*Epsd;
+    xt::noalias(Sig) =
+      3.0 * m_kappa * epsm * I +
+      2.0/3.0 * m_sig0 / std::pow(m_eps0, m_m) * std::pow(epseq, m_m - 1.0) * Epsd;
   }
   else
   {
-    xt::noalias(Sig) = 3.*m_kappa*epsm*I;
+    xt::noalias(Sig) = 3.0 * m_kappa * epsm * I;
   }
 }
 

@@ -1,9 +1,7 @@
 prefix=@CMAKE_INSTALL_PREFIX@
-exec_prefix=${prefix}
+includedir=${prefix}/include
 
-Name: GMatNonLinearElastic
-Description: Non-linear elastic material model
-Requires:
+Name: @PROJECT_NAME@
+Description: Linear elastic material model.
 Version: @GMATNONLINEARELASTIC_VERSION@
-Libs:
-Cflags: -I${prefix}/@GMATNONLINEARELASTIC_INCLUDE_DIR@
+Cflags: -I${includedir}
