@@ -170,11 +170,11 @@ py::class_<SM::Matrix>(sm, "Matrix")
 
     .def("kappa", &SM::Matrix::kappa, "Return matrix with bulk moduli.")
 
-    .def("sig0" &SM::Matrix::sig0, "Return matrix with reference stresses.")
+    .def("sig0", &SM::Matrix::sig0, "Return matrix with reference stresses.")
 
-    .def("eps0" &SM::Matrix::eps0, "Return matrix with reference strains.")
+    .def("eps0", &SM::Matrix::eps0, "Return matrix with reference strains.")
 
-    .def("m" &SM::Matrix::m, "Return matrix with exponents.")
+    .def("m", &SM::Matrix::m, "Return matrix with exponents.")
 
     .def("I2", &SM::Matrix::I2, "Return matrix with second order unit tensors.")
 
