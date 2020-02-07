@@ -18,7 +18,7 @@ epsm = 0.12
 Eps = np.array(
     [[epsm, 0.0, 0.0],
      [0.0, epsm, 0.0],
-     [0.0, 0.0, epsm]]
+     [0.0, 0.0, epsm]])
 
 # Elastic
 
@@ -56,9 +56,9 @@ sig = mat.Stress(eps)
 for e in range(nelem):
     for q in range(nip):
 
-        EQ(sig[e,q,0,0], 3.0 * K * epsm)
-        EQ(sig[e,q,1,1], 3.0 * K * epsm)
-        EQ(sig[e,q,2,2], 3.0 * K * epsm)
+        EQ(sig[e,q,0,0], 3.0 * kappa * epsm)
+        EQ(sig[e,q,1,1], 3.0 * kappa * epsm)
+        EQ(sig[e,q,2,2], 3.0 * kappa * epsm)
         EQ(sig[e,q,0,1], 0.0)
         EQ(sig[e,q,0,1], 0.0)
 
