@@ -23,7 +23,6 @@ Eps = np.array(
 # Elastic
 
 mat = GMat.NonLinearElastic(kappa, sig0, eps0, m)
-
 Sig = mat.Stress(Eps)
 
 EQ(Sig[0,0], 3.0 * kappa * epsm)
