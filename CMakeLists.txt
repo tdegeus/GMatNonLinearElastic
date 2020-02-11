@@ -1,3 +1,4 @@
+
 cmake_minimum_required(VERSION 3.0)
 
 # Basic settings
@@ -10,21 +11,21 @@ option(BUILD_TESTS "${PROJECT_NAME} Build tests" OFF)
 # Version
 # =======
 
-file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/include/GMatNonLinearElastic/config.h" GMatNonLinearElastic_version_defines
+file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/include/GMatNonLinearElastic/config.h"
+             _GMAT_version_defines
      REGEX "#define GMATNONLINEARELASTIC_VERSION_(MAJOR|MINOR|PATCH)")
 
-foreach(ver ${GMatNonLinearElastic_version_defines})
+foreach(ver ${_GMAT_version_defines})
     if(ver MATCHES "#define GMATNONLINEARELASTIC_VERSION_(MAJOR|MINOR|PATCH) +([^ ]+)$")
-    set(GMATNONLINEARELASTIC_VERSION_${CMAKE_MATCH_1}
-        "${CMAKE_MATCH_2}"
-        CACHE INTERNAL "")
+        set(_GMAT_VERSION_${CMAKE_MATCH_1}
+            "${CMAKE_MATCH_2}"
+            CACHE INTERNAL "")
     endif()
 endforeach()
 
-set(GMATNONLINEARELASTIC_VERSION
-    ${GMATNONLINEARELASTIC_VERSION_MAJOR}.${GMATNONLINEARELASTIC_VERSION_MINOR}.${GMATNONLINEARELASTIC_VERSION_PATCH})
+set(_GMAT_VERSION ${_GMAT_VERSION_MAJOR}.${_GMAT_VERSION_MINOR}.${_GMAT_VERSION_PATCH})
 
-message(STATUS "Building GMatNonLinearElastic v${GMATNONLINEARELASTIC_VERSION}")
+message(STATUS "Building GMatNonLinearElastic v${_GMAT_VERSION}")
 
 # Set target
 # ==========
@@ -50,18 +51,19 @@ install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include/" DESTINATION include)
 install(TARGETS GMatNonLinearElastic EXPORT GMatNonLinearElastic-targets)
 
 install(
-  EXPORT GMatNonLinearElastic-targets
-  FILE GMatNonLinearElasticTargets.cmake
-  DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/GMatNonLinearElastic")
+    EXPORT GMatNonLinearElastic-targets
+    FILE GMatNonLinearElasticTargets.cmake
+    DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/GMatNonLinearElastic")
 
-set(_GMATNONLINEARELASTIC ${CMAKE_SIZEOF_VOID_P})
+set(_GMAT ${CMAKE_SIZEOF_VOID_P})
 unset(CMAKE_SIZEOF_VOID_P)
 
-write_basic_package_version_file("${CMAKE_CURRENT_BINARY_DIR}/GMatNonLinearElasticConfigVersion.cmake"
-    VERSION ${GMATNONLINEARELASTIC_VERSION}
+write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/GMatNonLinearElasticConfigVersion.cmake"
+    VERSION ${_GMAT_VERSION}
     COMPATIBILITY AnyNewerVersion)
 
-set(CMAKE_SIZEOF_VOID_P ${_GMATNONLINEARELASTIC})
+set(CMAKE_SIZEOF_VOID_P ${_GMAT})
 
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/GMatNonLinearElasticConfig.cmake"
               "${CMAKE_CURRENT_BINARY_DIR}/GMatNonLinearElasticConfigVersion.cmake"

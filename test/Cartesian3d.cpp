@@ -26,7 +26,6 @@ Eps(0,0) = Eps(1,1) = Eps(2,2) = epsm;
 SECTION("NonLinearElastic")
 {
     GM::NonLinearElastic mat(kappa, sig0, eps0, m);
-
     Sig = mat.Stress(Eps);
 
     EQ(Sig(0,0), 3.0 * kappa * epsm);
@@ -47,7 +46,6 @@ SECTION("Matrix")
 
     GM::Matrix mat(nelem, nip);
 
-    // all rows elastic
     {
         xt::xtensor<size_t,2> I = xt::ones<size_t>({nelem, nip});
         mat.setNonLinearElastic(I, kappa, sig0, eps0, m);

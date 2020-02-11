@@ -69,7 +69,7 @@ inline xt::xtensor<double,2> Epseq(const xt::xtensor<double,4>& Eps);
 
 // Material point
 
-class NonLinearElastic 
+class NonLinearElastic
 {
 public:
 
@@ -112,7 +112,7 @@ struct Type {
     };
 };
 
-class Matrix 
+class Matrix
 {
 public:
 
@@ -155,7 +155,7 @@ public:
     // Set parameters for a batch of points
 
     void setNonLinearElastic(
-        const xt::xtensor<size_t,2>& I, 
+        const xt::xtensor<size_t,2>& I,
         double kappa,
         double sig0,
         double eps0,
@@ -194,8 +194,8 @@ private:
     static const size_t m_ndim = 3;
 
     // Internal check
-    bool m_allSet = false;
-    void checkAllSet();
+    bool m_allSet = false; // true if all points have a material assigned
+    void checkAllSet(); // check if all points have a material assigned (modifies "m_allSet")
 };
 
 // Internal support functions

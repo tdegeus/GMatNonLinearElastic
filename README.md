@@ -1,69 +1,199 @@
-
-# NonLinearElastic
+# GMatNonLinearElastic
 
 [![Travis](https://travis-ci.com/tdegeus/GMatNonLinearElastic.svg?branch=master)](https://travis-ci.com/tdegeus/GMatNonLinearElastic)
 
-Non-linear elastic material model. An overview of the theory can be found in `docs/theory` in particular in this [PDF](docs/readme.pdf).
-
->   **Disclaimer**
->   
->   This library is free to use under the [MIT license](https://github.com/tdegeus/GMatNonLinearElastic/blob/master/LICENSE). Any additions are very much appreciated, in terms of suggested functionality, code, documentation, testimonials, word-of-mouth advertisement, etc. Bug reports or feature requests can be filed on [GitHub](https://github.com/tdegeus/GMatNonLinearElastic). As always, the code comes with no guarantee. None of the developers can be held responsible for possible mistakes.
->   
->   Download: [.zip file](https://github.com/tdegeus/GMatNonLinearElastic/zipball/master) | [.tar.gz file](https://github.com/tdegeus/GMatNonLinearElastic/tarball/master).
->   
->   (c - [MIT](https://github.com/tdegeus/GMatNonLinearElastic/blob/master/LICENSE)) T.W.J. de Geus (Tom) | tom@geus.me | www.geus.me | [github.com/tdegeus/GMatNonLinearElastic](https://github.com/tdegeus/GMatNonLinearElastic)
+Non-linear elastic material model.
+An overview of the theory can be found in `docs/readme.tex` 
+conveniently compiled to this [PDF](docs/readme.pdf).
 
 # Contents
 
-<!-- MarkdownTOC levels="1,2" -->
+<!-- MarkdownTOC levels="1,2,3" -->
 
+- [Disclaimer](#disclaimer)
 - [Implementation](#implementation)
+    - [C++ and Python](#c-and-python)
+    - [Cartesian3d](#cartesian3d)
+        - [Overview](#overview)
+        - [Function names](#function-names)
+        - [Storage](#storage)
+        - [Example](#example)
+    - [Debugging](#debugging)
 - [Installation](#installation)
     - [C++ headers](#c-headers)
+        - [Using conda](#using-conda)
+        - [From source](#from-source)
     - [Python module](#python-module)
+        - [Using conda](#using-conda-1)
+        - [From source](#from-source-1)
 - [Compiling](#compiling)
+    - [Using CMake](#using-cmake)
+        - [Example](#example-1)
+        - [Targets](#targets)
+        - [Optimisation](#optimisation)
     - [By hand](#by-hand)
     - [Using pkg-config](#using-pkg-config)
-    - [Using `CMakeLists.txt`](#using-cmakeliststxt)
+- [References / Credits](#references--credits)
 
 <!-- /MarkdownTOC -->
 
+# Disclaimer
+
+This library is free to use under the
+[MIT license](https://github.com/tdegeus/GMatNonLinearElastic/blob/master/LICENSE).
+Any additions are very much appreciated, in terms of suggested functionality, code,
+documentation, testimonials, word-of-mouth advertisement, etc.
+Bug reports or feature requests can be filed on
+[GitHub](https://github.com/tdegeus/GMatNonLinearElastic).
+As always, the code comes with no guarantee.
+None of the developers can be held responsible for possible mistakes.
+
+Download:
+[.zip file](https://github.com/tdegeus/GMatNonLinearElastic/zipball/master) |
+[.tar.gz file](https://github.com/tdegeus/GMatNonLinearElastic/tarball/master).
+
+(c - [MIT](https://github.com/tdegeus/GMatNonLinearElastic/blob/master/LICENSE))
+T.W.J. de Geus (Tom) | tom@geus.me | www.geus.me |
+[github.com/tdegeus/GMatNonLinearElastic](https://github.com/tdegeus/GMatNonLinearElastic)
+
 # Implementation
 
-The headers are meant to be self-explanatory, please check them out:
+## C++ and Python
 
-* [Cartesian3d.h](include/NonLinearElastic/Cartesian3d.h)
+The code is a C++ header-only library (see [installation notes](#c-headers)), 
+but a Python module is also provided (see [installation notes](#python-module)).
+The interfaces are identical except:
 
-Only a tiny example is presented here, that is meant to understand the code's structure:
++   All *xtensor* objects (`xt::xtensor<...>`) are *NumPy* arrays in Python. 
+    Overloading based on rank is also available in Python.
++   The Python module cannot change output objects in-place: 
+    only functions whose name starts with a capital letter are included, see below.
++   All `::` in C++ are `.` in Python.
+
+## Cartesian3d
+
+[Cartesian3d.h](include/GMatNonLinearElastic/Cartesian3d.h)
+
+### Overview
+
+At the material point level to model is implemented in the class:
+
++   `NonLinearElastic`: non-linear elastic material model.
+
+There is a `Matrix` class that allows you to combine 
+have a single API for a matrix of material points. 
+
+### Function names
+
++   Functions whose name starts with a capital letter (e.g. `Stress`) 
+    return their result (allocating it internally).
++   Functions whose name starts with a small letter (e.g. `stress`) 
+    write to the, fully allocated, last input argument(s) 
+    (avoiding re-allocation, but making the user responsible to do it properly).
+
+### Storage
+
++   Scalar
+    ```cpp
+    double
+    ```
+
++   2nd-order tensor
+    ```cpp
+    xt::xtensor_fixed<double, xt::xshape<3, 3>> = 
+    GMatNonLinearElastic::Cartesian3d::Tensor2
+    ```
+
++   List *(i)* of second order tensors *(x,y)* : *A(i,x,y)*
+    ```cpp
+    xt::xtensor<double,3>
+    ```
+    Note that the shape is `[I, 3, 3]`.
+
++   Matrix *(i,j)* of second order tensors *(x,y)* : *A(i,j,x,y)*
+    ```cpp
+    xt::xtensor<double,4>
+    ```
+    Note that the shape is `[I, J, 3, 3]`.
+
+### Example
+
+Only a partial examples are presented here, meant to understand the code's structure.
+
+#### Individual material point
 
 ```cpp
-#include <NonLinearElastic/Cartesian3d.h>
+#include <GMatNonLinearElastic/Cartesian3d.h>
+
+namespace GMat = GMatNonLinearElastic::Cartesian3d;
 
 int main()
 {
     // a single material point
-    // - create class
-    NonLinearElastic::Cartesian3d::NonLinearElastic elastic(K, G);
-    // - compute stress [allocate result]
-    Sig = elastic.Stress(Eps);
+    GMat::NonLinearElastic nonlin(kappa, sig0, eps0, m);
     ...
-    // - compute stress [no allocation]
-    elastic.stress(Eps, Sig); 
+    
+    // set strain tensor (follows e.g. from FEM discretisation)
+    GMat::Tensor2 Eps;
+    ...
+    
+    // compute stress (including allocation of the result)
+    GMat::Tensor2 Sig = nonlin.Stress(Eps);
+    // OR compute stress without (re)allocating the results
+    // in this case "Sig" has to be of the correct type and shape
+    nonlin.stress(Eps, Sig); 
     ...
 
-    // a "matrix" of material points
-    // - create class
-    NonLinearElastic::Cartesian3d::NonLinearElastic matrix(nelem, nip);
-    // - set material
-    matrix.setElastic(I, K, G);
-    // - compute stress [allocate result]
-    Sig = matrix.Stress(Eps);
-    ...
-    // - compute stress [no allocation]
-    matrix.stress(Eps, Sig); 
-    ...
+    return 0;
 }
 ```
+
+#### Matrix of material points
+
+```cpp
+#include <GMatNonLinearElastic/Cartesian3d.h>
+
+namespace GMat = GMatNonLinearElastic::Cartesian3d;
+
+int main()
+{
+    // a matrix, of shape [nelem, nip], of material points
+    GMat::Elastic matrix(nelem, nip);
+
+    // set materials:
+    // points where I(x,y) == 1 are assigned, points where I(x,y) == 0 are skipped
+    // all points can only be assigned once
+    matrix.setNonLinearElastic(I, K, G);
+    ...
+
+    // set strain tensor (follows e.g. from FEM discretisation)
+    xt::xtensor<double,4> eps = xt::empty<double>({nelem, nip, 3ul, 3ul});
+    ... 
+
+    // compute stress (allocate result)
+    xt::xtensor<double,4> sig = matrix.Stress(eps);
+    // OR compute stress without (re)allocating the results
+    // in this case "sig" has to be of the correct type and shape
+    matrix.stress(eps, sig); 
+    ...
+
+    return 0;
+}
+```
+
+## Debugging
+
+To enable assertions define `GMATNONLINEARELASTIC_ENABLE_ASSERT` 
+**before** including *GMatNonLinearElastic* for the first time. 
+
+Using *CMake* this can be done using the `GMatNonLinearElastic::assert` target 
+(see [below](#using-cmake)).
+
+>   To also enable assertions of *xtensor* also define `XTENSOR_ENABLE_ASSERT` 
+>   **before** including *xtensor* (and *GMatNonLinearElastic*) for the first time. 
+>   
+>   Using *CMake* all assertions are enabled using the `GMatNonLinearElastic::debug` target 
+>   (see [below](#using-cmake)).
 
 # Installation
 
@@ -89,14 +219,30 @@ make install
 
 ## Python module
 
+### Using conda
+
+```bash
+conda install -c conda-forge python-gmatnonlinearelastic
+```
+
+Note that *xsimd* and hardware optimisations are **not enabled**. 
+To enable them you have to compile on your system, as is discussed next.
+
 ### From source
 
-> To get the prerequisites you *can* use conda
+>   You need *xtensor*, *pyxtensor* and optionally *xsimd* as prerequisites. 
+>   Additionally, Python needs to know how to find them. 
+>   The easiest is to use *conda* to get the prerequisites:
 > 
-> ```bash
-> conda install -c conda-forge pyxtensor
-> conda install -c conda-forge xsimd
-> ```
+>   ```bash
+>   conda install -c conda-forge pyxtensor
+>   conda install -c conda-forge xsimd
+>   ```
+>   
+>   If you then compile and install with the same environment 
+>   you should be good to go. 
+>   Otherwise, a bit of manual labour might be needed to
+>   treat the dependencies.
 
 ```bash
 # Download GMatNonLinearElastic
@@ -106,9 +252,61 @@ cd GMatNonLinearElastic
 # Compile and install the Python module
 python setup.py build
 python setup.py install
+# OR you can use one command (but with less readable output)
+python -m pip install .
 ```
 
 # Compiling
+
+## Using CMake
+
+### Example
+
+Using *GMatNonLinearElastic* your `CMakeLists.txt` can be as follows
+
+```cmake
+cmake_minimum_required(VERSION 3.1)
+project(example)
+find_package(GMatNonLinearElastic REQUIRED)
+add_executable(example example.cpp)
+target_link_libraries(example PRIVATE GMatNonLinearElastic)
+```
+
+### Targets
+
+The following targets are available:
+
+*   `GMatNonLinearElastic`
+    Includes *GMatNonLinearElastic* and the *xtensor* dependency.
+
+*   `GMatNonLinearElastic::assert`
+    Enables assertions by defining `GMATNONLINEARELASTIC_ENABLE_ASSERT`.
+
+*   `GMatNonLinearElastic::debug`
+    Enables all assertions by defining 
+    `GMATNONLINEARELASTIC_ENABLE_ASSERT` and `XTENSOR_ENABLE_ASSERT`.
+
+*   `GMatNonLinearElastic::compiler_warings`
+    Enables compiler warnings (generic).
+
+### Optimisation
+
+It is advised to think about compiler optimization and enabling *xsimd*. 
+Using *CMake* this can be done using the `xtensor::optimize` and `xtensor::use_xsimd` targets. 
+The above example then becomes:
+
+```cmake
+cmake_minimum_required(VERSION 3.1)
+project(example)
+find_package(GMatNonLinearElastic REQUIRED)
+add_executable(example example.cpp)
+target_link_libraries(example PRIVATE 
+    GMatNonLinearElastic 
+    xtensor::optimize 
+    xtensor::use_xsimd)
+```
+
+See the [documentation of xtensor](https://xtensor.readthedocs.io/en/latest/) concerning optimization.
 
 ## By hand
 
@@ -118,6 +316,9 @@ Presuming that the compiler is `c++`, compile using:
 c++ -I/path/to/GMatNonLinearElastic/include ...
 ```
 
+Note that you have to take care of the *xtensor* dependency, the C++ version, optimization, 
+enabling *xsimd*, ...
+
 ## Using pkg-config
 
 Presuming that the compiler is `c++`, compile using:
@@ -126,29 +327,9 @@ Presuming that the compiler is `c++`, compile using:
 c++ `pkg-config --cflags GMatNonLinearElastic` ...
 ```
 
-## Using `CMakeLists.txt`
+Note that you have to take care of the *xtensor* dependency, the C++ version, optimization, 
+enabling *xsimd*, ...
 
-Using *GMatNonLinearElastic* the `CMakeLists.txt` can be as follows
+# References / Credits
 
-```cmake
-cmake_minimum_required(VERSION 3.1)
-
-project(example)
-
-find_package(xtensor REQUIRED)
-find_package(GMatNonLinearElastic REQUIRED)
-
-add_executable(example example.cpp)
-
-target_link_libraries(example
-    PRIVATE
-    xtensor
-    GMatNonLinearElastic)
-```
-
-Compilation can then proceed using 
-
-```bash
-cmake .
-make
-```
++   [xtensor](https://github.com/QuantStack/xtensor) is used under the hood.
