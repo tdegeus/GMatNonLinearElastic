@@ -6,14 +6,14 @@
 #
 # In addition, it sets the following variables:
 #
-#     GMatNonLinearElastic_FOUND - true if GMatNonLinearElastic found
-#     GMatNonLinearElastic_VERSION - GMatNonLinearElastic's version
-#     GMatNonLinearElastic_INCLUDE_DIRS - the directory containing GMatNonLinearElastic headers
+#     GMatNonLinearElastic_FOUND - true if the library is found
+#     GMatNonLinearElastic_VERSION - the library's version
+#     GMatNonLinearElastic_INCLUDE_DIRS - directory containing the library's headers
 #
 # The following support targets are defined to simplify things:
 #
 #     GMatNonLinearElastic::compiler_warnings - enable compiler warnings
-#     GMatNonLinearElastic::assert - enable GMatNonLinearElastic assertions
+#     GMatNonLinearElastic::assert - enable library assertions
 #     GMatNonLinearElastic::debug - enable all assertions (slow)
 
 include(CMakeFindDependencyMacro)
@@ -22,11 +22,14 @@ include(CMakeFindDependencyMacro)
 
 if(NOT TARGET GMatNonLinearElastic)
     include("${CMAKE_CURRENT_LIST_DIR}/GMatNonLinearElasticTargets.cmake")
-    get_target_property(
-        GMatNonLinearElastic_INCLUDE_DIRS
-        GMatNonLinearElastic
-        INTERFACE_INCLUDE_DIRECTORIES)
 endif()
+
+# Define "GMatNonLinearElastic_INCLUDE_DIRS"
+
+get_target_property(
+    GMatNonLinearElastic_INCLUDE_DIRS
+    GMatNonLinearElastic
+    INTERFACE_INCLUDE_DIRECTORIES)
 
 # Find dependencies
 
