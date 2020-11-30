@@ -7,24 +7,6 @@
 #ifndef GMATNONLINEARELASTIC_H
 #define GMATNONLINEARELASTIC_H
 
-#include <tuple>
-#include <stdexcept>
-#include <limits>
-#include <math.h>
-#include <iostream>
-#include <vector>
-#include <tuple>
-#include <xtensor/xarray.hpp>
-#include <xtensor/xtensor.hpp>
-#include <xtensor/xnoalias.hpp>
-#include <xtensor/xfixed.hpp>
-#include <xtensor/xadapt.hpp>
-#include <xtensor/xview.hpp>
-#include <xtensor/xio.hpp>
-#include <xtensor/xoperation.hpp>
-#include <xtensor/xsort.hpp>
-#include <xtensor/xmath.hpp>
-
 #ifdef GMATNONLINEARELASTIC_ENABLE_ASSERT
 
     #define GMATNONLINEARELASTIC_ASSERT(expr) \

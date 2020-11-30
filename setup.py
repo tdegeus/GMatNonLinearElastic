@@ -40,7 +40,7 @@ ext_modules = [Extension(
 
 setup(
     name = 'GMatNonLinearElastic',
-    description = 'Non-linear elastic material model',
+    description = 'Non-linear elastic material model.',
     long_description = desc,
     keywords = 'Material model; FEM; FFT',
     version = __version__,
