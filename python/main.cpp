@@ -34,7 +34,6 @@ auto construct_Array(T& self)
         .def("eps0", &S::eps0, "Array with eps0.")
         .def("m", &S::m, "Array with m.")
         .def("type", &S::type, "Array with material types.")
-        .def("check", &S::check, "Throws if any unset point is found.")
 
         .def(
             "setNonLinearElastic",
@@ -46,7 +45,13 @@ auto construct_Array(T& self)
             py::arg("eps0"),
             py::arg("m"))
 
-        .def("setStrain", &S::setStrain, "Set strain tensors.", py::arg("Eps"))
+        .def(
+            "setStrain",
+            &S::setStrain,
+            "Set strain tensors (computes stress and optionally tangent).",
+            py::arg("Eps"),
+            py::arg("compute_tangent") = true)
+
         .def("Strain", &S::Strain, "Get strain tensors.")
         .def("Stress", &S::Stress, "Get stress tensors.")
         .def("Tangent", &S::Tangent, "Get stiffness tensors.")
@@ -150,7 +155,14 @@ PYBIND11_MODULE(GMatNonLinearElastic, m)
         .def("sig0", &SM::NonLinearElastic::sig0, "Returns the reference stress.")
         .def("eps0", &SM::NonLinearElastic::eps0, "Returns the reference strain.")
         .def("m", &SM::NonLinearElastic::m, "Returns the exponent.")
-        .def("setStrain", &SM::NonLinearElastic::setStrain<xt::xtensor<double, 2>>, "Set current strain tensor.")
+
+        .def(
+            "setStrain",
+            &SM::NonLinearElastic::setStrain<xt::xtensor<double, 2>>,
+            "Set current strain tensor (computes stress and optionally tangent).",
+            py::arg("Eps"),
+            py::arg("compute_tangent") = true)
+
         .def("Strain", &SM::NonLinearElastic::Strain, "Returns strain tensor.")
         .def("Stress", &SM::NonLinearElastic::Stress, "Returns stress tensor.")
         .def("Tangent", &SM::NonLinearElastic::Tangent, "Returns tangent stiffness.")

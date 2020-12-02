@@ -16,7 +16,6 @@ template <size_t N>
 inline Array<N>::Array(const std::array<size_t, N>& shape)
 {
     this->init(shape);
-    m_allSet = false;
     m_type = xt::ones<size_t>(m_shape) * Type::Unset;
     m_index = xt::empty<size_t>(m_shape);
 }
@@ -30,7 +29,6 @@ inline Array<N>::Array(
     double m)
 {
     this->init(shape);
-    m_allSet = false;
     m_type = xt::ones<size_t>(m_shape) * Type::NonLinearElastic;
     m_index = xt::arange<size_t>(m_size).reshape(m_shape);
 
@@ -42,12 +40,14 @@ inline Array<N>::Array(
 template <size_t N>
 inline xt::xtensor<double, N> Array<N>::kappa() const
 {
-    GMATNONLINEARELASTIC_ASSERT(m_allSet);
     xt::xtensor<double, N> ret = xt::empty<double>(m_shape);
 
     #pragma omp parallel for
     for (size_t i = 0; i < m_size; ++i) {
         switch (m_type.data()[i]) {
+        case Type::Unset:
+            ret.data()[i] = 0.0;
+            break;
         case Type::NonLinearElastic:
             ret.data()[i] = m_NonLinearElastic[m_index.data()[i]].kappa();
             break;
@@ -60,12 +60,14 @@ inline xt::xtensor<double, N> Array<N>::kappa() const
 template <size_t N>
 inline xt::xtensor<double, N> Array<N>::sig0() const
 {
-    GMATNONLINEARELASTIC_ASSERT(m_allSet);
     xt::xtensor<double, N> ret = xt::empty<double>(m_shape);
 
     #pragma omp parallel for
     for (size_t i = 0; i < m_size; ++i) {
         switch (m_type.data()[i]) {
+        case Type::Unset:
+            ret.data()[i] = 0.0;
+            break;
         case Type::NonLinearElastic:
             ret.data()[i] = m_NonLinearElastic[m_index.data()[i]].sig0();
             break;
@@ -78,12 +80,14 @@ inline xt::xtensor<double, N> Array<N>::sig0() const
 template <size_t N>
 inline xt::xtensor<double, N> Array<N>::eps0() const
 {
-    GMATNONLINEARELASTIC_ASSERT(m_allSet);
     xt::xtensor<double, N> ret = xt::empty<double>(m_shape);
 
     #pragma omp parallel for
     for (size_t i = 0; i < m_size; ++i) {
         switch (m_type.data()[i]) {
+        case Type::Unset:
+            ret.data()[i] = 0.0;
+            break;
         case Type::NonLinearElastic:
             ret.data()[i] = m_NonLinearElastic[m_index.data()[i]].eps0();
             break;
@@ -96,12 +100,14 @@ inline xt::xtensor<double, N> Array<N>::eps0() const
 template <size_t N>
 inline xt::xtensor<double, N> Array<N>::m() const
 {
-    GMATNONLINEARELASTIC_ASSERT(m_allSet);
     xt::xtensor<double, N> ret = xt::empty<double>(m_shape);
 
     #pragma omp parallel for
     for (size_t i = 0; i < m_size; ++i) {
         switch (m_type.data()[i]) {
+        case Type::Unset:
+            ret.data()[i] = 0.0;
+            break;
         case Type::NonLinearElastic:
             ret.data()[i] = m_NonLinearElastic[m_index.data()[i]].m();
             break;
@@ -114,27 +120,7 @@ inline xt::xtensor<double, N> Array<N>::m() const
 template <size_t N>
 inline xt::xtensor<size_t, N> Array<N>::type() const
 {
-    GMATNONLINEARELASTIC_ASSERT(m_allSet);
     return m_type;
-}
-
-template <size_t N>
-inline void Array<N>::check() const
-{
-    if (xt::any(xt::equal(m_type, Type::Unset))) {
-        throw std::runtime_error("Points without material found");
-    }
-}
-
-template <size_t N>
-inline void Array<N>::checkAllSet()
-{
-    if (xt::any(xt::equal(m_type, Type::Unset))) {
-        m_allSet = false;
-    }
-    else {
-        m_allSet = true;
-    }
 }
 
 template <size_t N>
@@ -160,16 +146,19 @@ inline void Array<N>::setNonLinearElastic(
 }
 
 template <size_t N>
-inline void Array<N>::setStrain(const xt::xtensor<double, N + 2>& A)
+inline void Array<N>::setStrain(const xt::xtensor<double, N + 2>& A, bool tangent)
 {
-    GMATNONLINEARELASTIC_ASSERT(m_allSet);
     GMATNONLINEARELASTIC_ASSERT(xt::has_shape(A, m_shape_tensor2));
 
     #pragma omp parallel for
     for (size_t i = 0; i < m_size; ++i) {
         switch (m_type.data()[i]) {
+        case Type::Unset:
+            break;
         case Type::NonLinearElastic:
-            m_NonLinearElastic[m_index.data()[i]].setStrainIterator(&A.data()[i * m_stride_tensor2]);
+            m_NonLinearElastic[m_index.data()[i]].setStrainIterator(
+                &A.data()[i * m_stride_tensor2],
+                tangent);
             break;
         }
     }
@@ -178,12 +167,14 @@ inline void Array<N>::setStrain(const xt::xtensor<double, N + 2>& A)
 template <size_t N>
 inline void Array<N>::strain(xt::xtensor<double, N + 2>& A) const
 {
-    GMATNONLINEARELASTIC_ASSERT(m_allSet);
     GMATNONLINEARELASTIC_ASSERT(xt::has_shape(A, m_shape_tensor2));
 
     #pragma omp parallel for
     for (size_t i = 0; i < m_size; ++i) {
         switch (m_type.data()[i]) {
+        case Type::Unset:
+            GMatTensor::Cartesian3d::pointer::O2(&A.data()[i * m_stride_tensor2]);
+            break;
         case Type::NonLinearElastic:
             m_NonLinearElastic[m_index.data()[i]].strainIterator(&A.data()[i * m_stride_tensor2]);
             break;
@@ -194,12 +185,14 @@ inline void Array<N>::strain(xt::xtensor<double, N + 2>& A) const
 template <size_t N>
 inline void Array<N>::stress(xt::xtensor<double, N + 2>& A) const
 {
-    GMATNONLINEARELASTIC_ASSERT(m_allSet);
     GMATNONLINEARELASTIC_ASSERT(xt::has_shape(A, m_shape_tensor2));
 
     #pragma omp parallel for
     for (size_t i = 0; i < m_size; ++i) {
         switch (m_type.data()[i]) {
+        case Type::Unset:
+            GMatTensor::Cartesian3d::pointer::O2(&A.data()[i * m_stride_tensor2]);
+            break;
         case Type::NonLinearElastic:
             m_NonLinearElastic[m_index.data()[i]].stressIterator(&A.data()[i * m_stride_tensor2]);
             break;
@@ -210,15 +203,16 @@ inline void Array<N>::stress(xt::xtensor<double, N + 2>& A) const
 template <size_t N>
 inline void Array<N>::tangent(xt::xtensor<double, N + 4>& A) const
 {
-    GMATNONLINEARELASTIC_ASSERT(m_allSet);
     GMATNONLINEARELASTIC_ASSERT(xt::has_shape(A, m_shape_tensor4));
 
     #pragma omp parallel for
     for (size_t i = 0; i < m_size; ++i) {
-        auto c = xt::adapt(&A.data()[i * m_stride_tensor4], xt::xshape<m_ndim, m_ndim, m_ndim, m_ndim>());
         switch (m_type.data()[i]) {
+        case Type::Unset:
+            GMatTensor::Cartesian3d::pointer::O4(&A.data()[i * m_stride_tensor4]);
+            break;
         case Type::NonLinearElastic:
-            m_NonLinearElastic[m_index.data()[i]].tangent(c);
+            m_NonLinearElastic[m_index.data()[i]].tangentIterator(&A.data()[i * m_stride_tensor4]);
             break;
         }
     }
@@ -251,7 +245,6 @@ inline xt::xtensor<double, N + 4> Array<N>::Tangent() const
 template <size_t N>
 inline auto Array<N>::getNonLinearElastic(const std::array<size_t, N>& index) const
 {
-    GMATNONLINEARELASTIC_ASSERT(m_allSet);
     GMATNONLINEARELASTIC_ASSERT(m_type[index] == Type::NonLinearElastic);
     return m_NonLinearElastic[m_index[index]];
 }
@@ -259,7 +252,6 @@ inline auto Array<N>::getNonLinearElastic(const std::array<size_t, N>& index) co
 template <size_t N>
 inline auto* Array<N>::refNonLinearElastic(const std::array<size_t, N>& index)
 {
-    GMATNONLINEARELASTIC_ASSERT(m_allSet);
     GMATNONLINEARELASTIC_ASSERT(m_type[index] == Type::NonLinearElastic);
     return &m_NonLinearElastic[m_index[index]];
 }
