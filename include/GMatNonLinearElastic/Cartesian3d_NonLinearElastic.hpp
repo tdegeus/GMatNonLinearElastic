@@ -60,16 +60,17 @@ inline void NonLinearElastic::setStrainIterator(const T* arg, bool tangent)
         m_Sig[7] = f * Epsd[7];
         m_Sig[8] = f * Epsd[8] + 3.0 * m_kappa * epsm;
     }
-
-    m_Sig[0] = 3.0 * m_kappa * epsm;
-    m_Sig[1] = 0.0;
-    m_Sig[2] = 0.0;
-    m_Sig[3] = 0.0;
-    m_Sig[4] = 3.0 * m_kappa * epsm;
-    m_Sig[5] = 0.0;
-    m_Sig[6] = 0.0;
-    m_Sig[7] = 0.0;
-    m_Sig[8] = 3.0 * m_kappa * epsm;
+    else {
+        m_Sig[0] = 3.0 * m_kappa * epsm;
+        m_Sig[1] = 0.0;
+        m_Sig[2] = 0.0;
+        m_Sig[3] = 0.0;
+        m_Sig[4] = 3.0 * m_kappa * epsm;
+        m_Sig[5] = 0.0;
+        m_Sig[6] = 0.0;
+        m_Sig[7] = 0.0;
+        m_Sig[8] = 3.0 * m_kappa * epsm;
+    }
 
     if (!tangent) {
         return;
