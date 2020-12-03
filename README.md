@@ -33,7 +33,14 @@ conveniently compiled to this [PDF](docs/readme.pdf).
         - [Optimisation](#optimisation)
     - [By hand](#by-hand)
     - [Using pkg-config](#using-pkg-config)
+- [Testing](#testing)
+    - [Basic testing](#basic-testing)
+    - [Extensive testing](#extensive-testing)
 - [References / Credits](#references--credits)
+- [Upgrading instructions](#upgrading-instructions)
+    - [Upgrading to >v0.2.*](#upgrading-to-v02)
+- [Change-log](#change-log)
+    - [v0.2.0](#v020)
 
 <!-- /MarkdownTOC -->
 
@@ -345,6 +352,46 @@ c++ `pkg-config --cflags GMatNonLinearElastic` ...
 Note that you have to take care of the *xtensor* dependency, the C++ version, optimization, 
 enabling *xsimd*, ...
 
+# Testing
+
+## Basic testing
+
+>   Run by the continuous integration
+
+```
+cd build
+cmake .. -DBUILD_TESTS=1
+make
+./test/unit-tests
+```
+
+## Extensive testing
+
+>   Run by the continuous integration.
+>   See [ci.yaml](.github/workflows/ci.yml) for details.
+
+To make sure that the current version in up-to-date with old versions,
+one starts by generating a set or random states using the current version:
+
+```
+cd test/compare_versions
+python Cartesian3d_generate.py
+```
+
+And then checks that the generated states are also found with previous
+versions:
+
+```
+git checkout tags/v0.1.3
+python setup.py build
+python setup.py install
+python Cartesian2d_check_v0.1.3.py
+```
+
+etc.
+
+See [ci.yaml](.github/workflows/ci.yml) for details.
+
 # References / Credits
 
 +   [xtensor](https://github.com/QuantStack/xtensor) is used under the hood.
@@ -372,11 +419,21 @@ This requires the following changes:
     -   `Matrix` to `Array2d` in Python. 
         Note that `Array1d`, `Array3d`, are also available.
 
+*   `Array<rank>.check` -> 
+    ```cpp
+    if (xt::any(xt::equal(array.type(), Type::Unset))) {
+        throw std::runtime_error("Please set all points");
+    }
+    ```
+    Note however that it is no longer required to set all points, 
+    unset points are filled-up with zeros.
+
 *   Strain is now stored as a member. 
     Functions like `stress` now return the state based on the last specified strain, 
     specified using `setStrain(Esp)`. This leads to the following changes:
     - `stress`: no argument.
     - `tangent`: no argument, single return value (no longer returns stress).
+
 # Change-log
 
 ## v0.2.0
@@ -388,6 +445,9 @@ This requires the following changes:
     -   `Matrix` to `Array<2>` in C++.
     -   `Matrix` to `Array2d` in Python. 
         Note that `Array1d`, `Array3d`, are also available.
+
+*   `Array` now sets zeros for all `Type::Unset` points. 
+    The function `check` is deprecated accordingly.
 
 *   Strain is now stored as a member. 
     Functions like `stress` now return the state based on the last specified strain, 
