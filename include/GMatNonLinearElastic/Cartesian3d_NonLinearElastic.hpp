@@ -39,7 +39,7 @@ inline double NonLinearElastic::m() const
 }
 
 template <class T>
-inline void NonLinearElastic::setStrainIterator(const T* arg, bool tangent)
+inline void NonLinearElastic::setStrainPtr(const T* arg, bool tangent)
 {
     namespace GT = GMatTensor::Cartesian3d::pointer;
     std::copy(arg, arg + 9, m_Eps.begin());
@@ -92,69 +92,69 @@ inline void NonLinearElastic::setStrainIterator(const T* arg, bool tangent)
 }
 
 template <class T>
-inline void NonLinearElastic::strainIterator(T* ret) const
+inline void NonLinearElastic::strainPtr(T* ret) const
 {
     std::copy(m_Eps.begin(), m_Eps.end(), ret);
 }
 
 template <class T>
-inline void NonLinearElastic::stressIterator(T* ret) const
+inline void NonLinearElastic::stressPtr(T* ret) const
 {
     std::copy(m_Sig.begin(), m_Sig.end(), ret);
 }
 
 template <class T>
-inline void NonLinearElastic::tangentIterator(T* ret) const
+inline void NonLinearElastic::tangentPtr(T* ret) const
 {
     std::copy(m_C.cbegin(), m_C.cend(), ret);
 }
 
 template <class T>
-inline void NonLinearElastic::setStrain(const T& a, bool tangent)
+inline void NonLinearElastic::setStrain(const T& arg, bool tangent)
 {
-    GMATNONLINEARELASTIC_ASSERT(xt::has_shape(a, {3, 3}));
-    return this->setStrainIterator(a.data(), tangent);
+    GMATNONLINEARELASTIC_ASSERT(xt::has_shape(arg, {3, 3}));
+    return this->setStrainPtr(arg.data(), tangent);
 }
 
 template <class T>
-inline void NonLinearElastic::strain(T& a) const
+inline void NonLinearElastic::strain(T& ret) const
 {
-    GMATNONLINEARELASTIC_ASSERT(xt::has_shape(a, {3, 3}));
-    return this->strainIterator(a.data());
+    GMATNONLINEARELASTIC_ASSERT(xt::has_shape(ret, {3, 3}));
+    return this->strainPtr(ret.data());
 }
 
 template <class T>
-inline void NonLinearElastic::stress(T& a) const
+inline void NonLinearElastic::stress(T& ret) const
 {
-    GMATNONLINEARELASTIC_ASSERT(xt::has_shape(a, {3, 3}));
-    return this->stressIterator(a.data());
+    GMATNONLINEARELASTIC_ASSERT(xt::has_shape(ret, {3, 3}));
+    return this->stressPtr(ret.data());
 }
 
 template <class T>
-inline void NonLinearElastic::tangent(T& a) const
+inline void NonLinearElastic::tangent(T& ret) const
 {
-    GMATNONLINEARELASTIC_ASSERT(xt::has_shape(a, {3, 3, 3, 3}));
-    return this->stressIterator(a.data());
+    GMATNONLINEARELASTIC_ASSERT(xt::has_shape(ret, {3, 3, 3, 3}));
+    return this->tangentPtr(ret.data());
 }
 
 inline xt::xtensor<double, 2> NonLinearElastic::Strain() const
 {
     xt::xtensor<double, 2> ret = xt::empty<double>({3, 3});
-    this->strainIterator(ret.data());
+    this->strainPtr(ret.data());
     return ret;
 }
 
 inline xt::xtensor<double, 2> NonLinearElastic::Stress() const
 {
     xt::xtensor<double, 2> ret = xt::empty<double>({3, 3});
-    this->stressIterator(ret.data());
+    this->stressPtr(ret.data());
     return ret;
 }
 
 inline xt::xtensor<double, 4> NonLinearElastic::Tangent() const
 {
     xt::xtensor<double, 4> ret = xt::empty<double>({3, 3, 3, 3});
-    this->tangentIterator(ret.data());
+    this->tangentPtr(ret.data());
     return ret;
 }
 

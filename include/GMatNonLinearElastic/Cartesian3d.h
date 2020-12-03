@@ -64,10 +64,10 @@ public:
     template <class T> void stress(T& ret) const;
     template <class T> void tangent(T& ret) const;
 
-    template <class T> void setStrainIterator(const T* arg, bool compute_tangent = true);
-    template <class T> void strainIterator(T* ret) const;
-    template <class T> void stressIterator(T* ret) const;
-    template <class T> void tangentIterator(T* ret) const;
+    template <class T> void setStrainPtr(const T* arg, bool compute_tangent = true);
+    template <class T> void strainPtr(T* ret) const;
+    template <class T> void stressPtr(T* ret) const;
+    template <class T> void tangentPtr(T* ret) const;
 
     xt::xtensor<double, 2> Strain() const;
     xt::xtensor<double, 2> Stress() const;
