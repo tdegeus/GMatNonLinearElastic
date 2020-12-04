@@ -153,9 +153,7 @@ inline xt::xtensor<double, 2> NonLinearElastic::Stress() const
 
 inline xt::xtensor<double, 4> NonLinearElastic::Tangent() const
 {
-    xt::xtensor<double, 4> ret = xt::empty<double>({3, 3, 3, 3});
-    this->tangentPtr(ret.data());
-    return ret;
+    return m_C;
 }
 
 } // namespace Cartesian3d
