@@ -1,6 +1,6 @@
 # GMatNonLinearElastic
 
-[![Travis](https://travis-ci.com/tdegeus/GMatNonLinearElastic.svg?branch=master)](https://travis-ci.com/tdegeus/GMatNonLinearElastic)
+[![CI](https://github.com/tdegeus/GMatNonLinearElastic/workflows/CI/badge.svg)](https://github.com/tdegeus/GMatNonLinearElastic/actions)
 
 Non-linear elastic material model.
 An overview of the theory can be found in `docs/readme.tex` 
@@ -117,7 +117,7 @@ int main()
     ...
     
     // compute stress (including allocation of the result)
-    xt::xtensor<double, 2> Sig = elastic.Stress();
+    auto Sig = elastic.Stress();
     // OR compute stress without (re)allocating the results
     // in this case "Sig" has to be of the correct type and shape
     model.stress(Sig); 
@@ -454,3 +454,6 @@ This requires the following changes:
     specified using `setStrain(Esp)`. This leads to the following changes:
     - `stress`: no argument.
     - `tangent`: no argument, single return value (no longer returns stress).
+
+*   Tensor operations are now provided centrally in the GMat eco-system, 
+    by GMatTensor

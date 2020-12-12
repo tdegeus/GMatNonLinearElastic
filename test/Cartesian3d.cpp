@@ -2,36 +2,17 @@
 #include <catch2/catch.hpp>
 #include <xtensor/xrandom.hpp>
 #include <GMatNonLinearElastic/Cartesian3d.h>
-
-#define ISCLOSE(a,b) REQUIRE_THAT((a), Catch::WithinAbs((b), 1e-12));
+#include <GMatTensor/Cartesian3d.h>
 
 namespace GM = GMatNonLinearElastic::Cartesian3d;
-
-template <class T, class S>
-S A4_ddot_B2(const T& A, const S& B)
-{
-    S C = xt::empty<double>({3, 3});
-    C.fill(0.0);
-
-    for (size_t i = 0; i < 3; i++) {
-        for (size_t j = 0; j < 3; j++) {
-            for (size_t k = 0; k < 3; k++) {
-                for (size_t l = 0; l < 3; l++) {
-                    C(i, j) += A(i, j, k, l) * B(l, k);
-                }
-            }
-        }
-    }
-
-    return C;
-}
+namespace GT = GMatTensor::Cartesian3d;
 
 TEST_CASE("GMatNonLinearElastic::Cartesian3d", "Cartesian3d.h")
 {
 
     SECTION("Epseq - Tensor2")
     {
-        xt::xtensor<double, 2> A = xt::zeros<double>({3, 3});
+        auto A = GT::O2();
         A(0, 1) = 1.0;
         A(1, 0) = 1.0;
         REQUIRE(GM::Epseq(A)() == Approx(2.0 / std::sqrt(3.0)));
@@ -39,7 +20,7 @@ TEST_CASE("GMatNonLinearElastic::Cartesian3d", "Cartesian3d.h")
 
     SECTION("Epseq - List")
     {
-        xt::xtensor<double, 2> A = xt::zeros<double>({3, 3});
+        auto A = GT::O2();
         A(0, 1) = 1.0;
         A(1, 0) = 1.0;
         auto M = xt::xtensor<double,3>::from_shape({3, 3, 3});
@@ -53,7 +34,7 @@ TEST_CASE("GMatNonLinearElastic::Cartesian3d", "Cartesian3d.h")
 
     SECTION("Epseq - Matrix")
     {
-        xt::xtensor<double, 2> A = xt::zeros<double>({3, 3});
+        auto A = GT::O2();
         A(0, 1) = 1.0;
         A(1, 0) = 1.0;
         auto M = xt::xtensor<double,4>::from_shape({3, 4, 3, 3});
@@ -69,7 +50,7 @@ TEST_CASE("GMatNonLinearElastic::Cartesian3d", "Cartesian3d.h")
 
     SECTION("Sigeq - Tensor2")
     {
-        xt::xtensor<double, 2> A = xt::zeros<double>({3, 3});
+        auto A = GT::O2();
         A(0, 1) = 1.0;
         A(1, 0) = 1.0;
         REQUIRE(GM::Sigeq(A)() == Approx(std::sqrt(3.0)));
@@ -77,7 +58,7 @@ TEST_CASE("GMatNonLinearElastic::Cartesian3d", "Cartesian3d.h")
 
     SECTION("Sigeq - List")
     {
-        xt::xtensor<double, 2> A = xt::zeros<double>({3, 3});
+        auto A = GT::O2();
         A(0, 1) = 1.0;
         A(1, 0) = 1.0;
         auto M = xt::xtensor<double,3>::from_shape({3, 3, 3});
@@ -91,7 +72,7 @@ TEST_CASE("GMatNonLinearElastic::Cartesian3d", "Cartesian3d.h")
 
     SECTION("Sigeq - Matrix")
     {
-        xt::xtensor<double, 2> A = xt::zeros<double>({3, 3});
+        auto A = GT::O2();
         A(0, 1) = 1.0;
         A(1, 0) = 1.0;
         auto M = xt::xtensor<double,4>::from_shape({3, 4, 3, 3});

@@ -45,7 +45,7 @@ inline void NonLinearElastic::setStrainPtr(const T* arg, bool tangent)
     std::copy(arg, arg + 9, m_Eps.begin());
 
     std::array<double, 9> Epsd;
-    double epsm = GT::hydrostatic_deviatoric(&m_Eps[0], &Epsd[0]);
+    double epsm = GT::Hydrostatic_deviatoric(&m_Eps[0], &Epsd[0]);
     double epseq = std::sqrt(2.0 / 3.0 * GT::A2s_ddot_B2s(&Epsd[0], &Epsd[0]));
 
     if (epseq != 0.0) {
@@ -80,7 +80,7 @@ inline void NonLinearElastic::setStrainPtr(const T* arg, bool tangent)
     auto I4d = Cartesian3d::I4d();
 
     if (epseq != 0.0) {
-        GMatTensor::Cartesian3d::pointer::A2_dyadic_B2(&Epsd[0], &Epsd[0], m_C.data());
+        GT::A2_dyadic_B2(&Epsd[0], &Epsd[0], m_C.data());
         m_C *= 2.0 / 3.0 * (m_m - 1.0) * std::pow(epseq, m_m - 3.0);
         m_C += std::pow(epseq, m_m - 1.0) * I4d;
         m_C *= 2.0 / 3.0 * m_sig0 / std::pow(m_eps0, m_m);
