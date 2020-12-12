@@ -11,15 +11,12 @@ option(BUILD_TESTS "${PROJECT_NAME} Build tests" OFF)
 # Version
 # =======
 
-file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/include/GMatNonLinearElastic/config.h"
-             _GMAT_version_defines
+file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/include/GMatNonLinearElastic/config.h"  _GMAT_ver
      REGEX "#define GMATNONLINEARELASTIC_VERSION_(MAJOR|MINOR|PATCH)")
 
-foreach(ver ${_GMAT_version_defines})
+foreach(ver ${_GMAT_ver})
     if(ver MATCHES "#define GMATNONLINEARELASTIC_VERSION_(MAJOR|MINOR|PATCH) +([^ ]+)$")
-        set(_GMAT_VERSION_${CMAKE_MATCH_1}
-            "${CMAKE_MATCH_2}"
-            CACHE INTERNAL "")
+        set(_GMAT_VERSION_${CMAKE_MATCH_1} "${CMAKE_MATCH_2}" CACHE INTERNAL "")
     endif()
 endforeach()
 
@@ -31,6 +28,7 @@ message(STATUS "Building GMatNonLinearElastic v${_GMAT_VERSION}")
 # ==========
 
 find_package(xtensor REQUIRED)
+find_package(GMatTensor REQUIRED)
 
 add_library(GMatNonLinearElastic INTERFACE)
 
@@ -38,7 +36,7 @@ target_include_directories(GMatNonLinearElastic INTERFACE
     $<INSTALL_INTERFACE:include>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
 
-target_link_libraries(GMatNonLinearElastic INTERFACE xtensor)
+target_link_libraries(GMatNonLinearElastic INTERFACE xtensor GMatTensor)
 
 # Installation
 # ============
@@ -80,6 +78,10 @@ install(FILES "${CMAKE_CURRENT_BINARY_DIR}/GMatNonLinearElastic.pc"
 
 include("GMatNonLinearElasticConfig.cmake")
 
+set(CTEST_TEST_TARGET_ALIAS RUN_ALL_TESTS)
+include(CTest)
+
 if(BUILD_TESTS)
+    enable_testing()
     add_subdirectory(test)
 endif()

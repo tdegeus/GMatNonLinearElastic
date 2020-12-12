@@ -1,69 +1,73 @@
-
-import GMatNonLinearElastic.Cartesian3d as GMat
+import unittest
 import numpy as np
+import GMatNonLinearElastic.Cartesian3d as GMat
 
-def EQ(a,b):
-  assert np.abs(a-b) < 1.e-12
+class Test_main(unittest.TestCase):
 
-def ALLEQ(a, b):
-  assert np.allclose(a, b)
+    def test_NonLinearElastic(self):
 
-kappa = 12.3
-sig0 = 45.6
-eps0 = 45.6
-m = 1.0
+        kappa = 12.3
+        sig0 = 45.6
+        eps0 = 45.6
+        m = 1.0
 
-epsm = 0.12
+        epsm = 0.12
 
-Eps = np.array(
-    [[epsm, 0.0, 0.0],
-     [0.0, epsm, 0.0],
-     [0.0, 0.0, epsm]])
+        Eps = np.array(
+            [[epsm, 0.0, 0.0],
+             [0.0, epsm, 0.0],
+             [0.0, 0.0, epsm]])
 
-# Elastic
+        Sig = np.array(
+            [[3.0 * kappa * epsm, 0.0, 0.0],
+             [0.0, 3.0 * kappa * epsm, 0.0],
+             [0.0, 0.0, 3.0 * kappa * epsm]])
 
-mat = GMat.NonLinearElastic(kappa, sig0, eps0, m)
-Sig = mat.Stress(Eps)
+        mat = GMat.NonLinearElastic(kappa, sig0, eps0, m)
+        mat.setStrain(Eps)
 
-EQ(Sig[0,0], 3.0 * kappa * epsm)
-EQ(Sig[1,1], 3.0 * kappa * epsm)
-EQ(Sig[2,2], 3.0 * kappa * epsm)
-EQ(Sig[0,1], 0)
-EQ(Sig[1,0], 0)
-EQ(Sig[0,2], 0)
-EQ(Sig[1,2], 0)
-EQ(Sig[2,0], 0)
-EQ(Sig[2,1], 0)
+        self.assertTrue(np.allclose(mat.Stress(), Sig))
 
-# Matrix
+    def test_Array2d(self):
 
-nelem = 2
-nip = 2
-mat = GMat.Matrix(nelem, nip)
+        kappa = 12.3
+        sig0 = 45.6
+        eps0 = 45.6
+        m = 1.0
 
-# all rows: non-linear elastic
-I = np.ones([nelem, nip], dtype='int')
-mat.setNonLinearElastic(I, kappa, sig0, eps0, m)
+        epsm = 0.12
 
-eps = np.zeros((nelem, nip, 3, 3))
-for i in range(3):
-    for j in range(3):
-        eps[:, :, i, j] = Eps[i, j]
+        Eps = np.array(
+            [[epsm, 0.0, 0.0],
+             [0.0, epsm, 0.0],
+             [0.0, 0.0, epsm]])
 
-sig = mat.Stress(eps)
+        Sig = np.array(
+            [[3.0 * kappa * epsm, 0.0, 0.0],
+             [0.0, 3.0 * kappa * epsm, 0.0],
+             [0.0, 0.0, 3.0 * kappa * epsm]])
 
-for e in range(nelem):
-    for q in range(nip):
+        nelem = 3
+        nip = 2
+        mat = GMat.Array2d([nelem, nip])
+        ndim = 3
 
-        EQ(sig[e,q,0,0], 3.0 * kappa * epsm)
-        EQ(sig[e,q,1,1], 3.0 * kappa * epsm)
-        EQ(sig[e,q,2,2], 3.0 * kappa * epsm)
-        EQ(sig[e,q,0,1], 0.0)
-        EQ(sig[e,q,0,1], 0.0)
+        I = np.ones([nelem, nip], dtype='int')
+        mat.setNonLinearElastic(I, kappa, sig0, eps0, m)
 
-ALLEQ(sig[:,:,0,2], 0.0)
-ALLEQ(sig[:,:,1,2], 0.0)
-ALLEQ(sig[:,:,2,0], 0.0)
-ALLEQ(sig[:,:,2,1], 0.0)
+        eps = np.zeros((nelem, nip, ndim, ndim))
+        sig = np.zeros((nelem, nip, ndim, ndim))
 
-print('All checks passed')
+        for e in range(nelem):
+            for q in range(nip):
+                fac = float((e + 1) * nip + (q + 1))
+                eps[e, q, :, :] = fac * Eps
+                sig[e, q, :, :] = fac * Sig
+
+        mat.setStrain(eps)
+
+        self.assertTrue(np.allclose(mat.Stress(), sig))
+
+if __name__ == '__main__':
+
+    unittest.main()
