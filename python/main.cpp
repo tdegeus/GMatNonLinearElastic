@@ -5,12 +5,12 @@
 */
 
 #include <pybind11/pybind11.h>
-#include <pyxtensor/pyxtensor.hpp>
+#include <pybind11/stl.h>
 
-// Enable basic assertions on matrix shape
-// (doesn't cost a lot of time, but avoids segmentation faults)
-#define GMATNONLINEARELASTIC_ENABLE_ASSERT
+#define FORCE_IMPORT_ARRAY
+#include <xtensor-python/pytensor.hpp>
 
+#include <GMatNonLinearElastic/version.h>
 #include <GMatNonLinearElastic/Cartesian3d.h>
 
 namespace py = pybind11;
@@ -103,10 +103,19 @@ void add_sigeq_overloads(T& module)
 }
 
 
-PYBIND11_MODULE(GMatNonLinearElastic, m)
+PYBIND11_MODULE(_GMatNonLinearElastic, m)
 {
+    xt::import_numpy();
 
     m.doc() = "Non-linear elastic material model";
+
+    m.def("version",
+          &GMatNonLinearElastic::version,
+          "Return version string.");
+
+    m.def("version_dependencies",
+          &GMatNonLinearElastic::version_dependencies,
+          "Return list of strings.");
 
     // --------------------------------
     // GMatNonLinearElastic.Cartesian3d
