@@ -1,1 +1,1 @@
-from ._GMatNonLinearElastic.Cartesian2d import *
+from ._GMatNonLinearElastic.Cartesian3d import *
