@@ -7,34 +7,27 @@ class Test(unittest.TestCase):
 
     def test_main(self):
 
-        with h5py.File('Cartesian3d_random.hdf5', 'r') as data:
+        with h5py.File('Cartesian3d_random.hdf5') as data:
 
-            shape = data['/shape'][...]
+            kappa = data["kappa"][...]
+            sig0 = data["sig0"][...]
+            eps0 = data["eps0"][...]
+            m = data["m"][...]
 
-            i = np.eye(3)
-            I = np.einsum('xy,ij', np.ones(shape), i)
-            I4 = np.einsum('xy,ijkl->xyijkl', np.ones(shape), np.einsum('il,jk', i, i))
-            I4rt = np.einsum('xy,ijkl->xyijkl', np.ones(shape), np.einsum('ik,jl', i, i))
-            I4s = (I4 + I4rt) / 2.0
+            mat = GMat.Matrix(kappa.shape[0], kappa.shape[1])
 
-            mat = GMat.Matrix(shape[0], shape[1])
-
-            I = data['/model/I'][...]
-            kappa = data['/model/kappa'][...]
-            sig0 = data['/model/sig0'][...]
-            eps0 = data['/model/eps0'][...]
-            m = data['/model/m'][...]
-
-            mat.setNonLinearElastic(I, kappa, sig0, eps0, m)
+            for i in range(kappa.shape[0]):
+                for j in range(kappa.shape[1]):
+                    iden = np.zeros(kappa.shape, dtype=bool)
+                    iden[i, j] = True
+                    mat.setNonLinearElastic(iden, kappa[i, j], sig0[i, j], eps0[i, j], m[i, j])
 
             for i in range(20):
 
-                GradU = data['/random/{0:d}/GradU'.format(i)][...]
+                                Eps = data[f"/data/{i:d}/Eps"][...]
 
-                Eps = np.einsum('...ijkl,...lk->...ij', I4s, GradU)
-
-                self.assertTrue(np.allclose(mat.Stress(Eps), data['/random/{0:d}/Stress'.format(i)][...]))
-                self.assertTrue(np.allclose(mat.Tangent(Eps)[1], data['/random/{0:d}/Tangent'.format(i)][...]))
+                self.assertTrue(np.allclose(mat.Stress(Eps), data[f"/data/{i:d}/Stress"][...]))
+                self.assertTrue(np.allclose(mat.Tangent(Eps)[1], data[f"/data/{i:d}/Tangent"][...]))
 
 if __name__ == '__main__':
 

@@ -10,8 +10,6 @@
 #include <GMatElastic/Cartesian3d.h>
 #include <GMatTensor/Cartesian3d.h>
 
-#include <xtensor/xio.hpp>
-
 #include "config.h"
 #include "version.h"
 
@@ -39,6 +37,7 @@ private:
     array_type::tensor<double, N> m_sig0; ///< Reference stress per item.
     array_type::tensor<double, N> m_eps0; ///< Reference strain per item.
     array_type::tensor<double, N> m_m; ///< Exponent per item.
+    array_type::tensor<double, N + 2> m_Eps; ///< Strain tensor per item.
     array_type::tensor<double, N + 2> m_Sig; ///< Stress tensor per item.
     array_type::tensor<double, N + 4> m_C; ///< Tangent per item.
 
@@ -78,6 +77,7 @@ public:
         m_eps0 = eps0;
         m_m = m;
 
+        m_Eps = xt::zeros<double>(m_shape_tensor2);
         m_Sig = xt::empty<double>(m_shape_tensor2);
         m_C = xt::empty<double>(m_shape_tensor4);
 

@@ -33,7 +33,7 @@ The advantage is that:
 /**
 Linear elastoplastic material model.
 */
-namespace GMATNONLINEARELASTIC {
+namespace GMatNonLinearElastic {
 
 /**
 Define container type.
@@ -63,6 +63,6 @@ using tensor = xt::xtensor<T, N>;
 
 } // namespace array_type
 
-} // namespace GMATNONLINEARELASTIC
+} // namespace GMatNonLinearElastic
 
 #endif
