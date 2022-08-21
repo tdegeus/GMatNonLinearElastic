@@ -1,63 +1,89 @@
-import GMatNonLinearElastic as gmat
+import GMatNonLinearElastic.Cartesian3d as GMat
+import GMatTensor.Cartesian3d as tensor
 import GooseMPL as gplt
 import matplotlib.pyplot as plt
 import numpy as np
 
-plt.style.use(['goose', 'goose-latex'])
+try:
+    plt.style.use(["goose", "goose-latex"])
+except FileNotFoundError:
+    pass
 
-def ddot42(A4, B2):
-    return np.einsum('ijkl,lk->ij', A4, B2)
-
-def ddot22(A2, B2):
-    return np.einsum('ij,ji', A2, B2)
 
 def norm(A2):
-    return np.abs(np.einsum('ij,ji', A2, A2))
+    return tensor.A2_ddot_B2(A2, A2)
 
-mat = gmat.Cartesian3d.NonLinearElastic(10., 1., 1., .1)
 
-Eps_star = np.array([
-    [0.0, 0.1, 0.0],
-    [0.1, 0.0, 0.0],
-    [0.0, 0.0, 0.0],
-])
+mat = GMat.NonLinearElastic0d(10.0, 1.0, 1.0, 0.1)
 
-Sig_star, C4 = mat.Tangent(Eps_star)
+Eps0 = np.array(
+    [
+        [0.0, 0.1, 0.0],
+        [0.1, 0.0, 0.0],
+        [0.0, 0.0, 0.0],
+    ]
+)
+
+mat.Eps = Eps0
+Sig0 = np.copy(mat.Sig)
+C4 = np.copy(mat.C)
+
+# consistency check
 
 x = np.logspace(-16, 0, 100)
 y = np.zeros(x.shape)
 
 for i in range(len(x)):
 
-    delta_Eps = np.random.random((3, 3)) * x[i]
-    delta_Eps = .5 * (delta_Eps + delta_Eps.T)
+    dEps = np.random.random((3, 3)) * x[i]
+    dEps = 0.5 * (dEps + dEps.T)
 
-    Sig = mat.Stress(Eps_star + delta_Eps)
+    mat.Eps = Eps0 + dEps
+    dSig = mat.Sig - Sig0
 
-    delta_Sig = Sig - Sig_star
+    y[i] = norm(dSig - tensor.A4_ddot_B2(C4, dEps)) / norm(dSig)
 
-    y[i] = norm(delta_Sig - ddot42(C4, delta_Eps)) / norm(delta_Sig)
-
-# Plot
+# plot result
 
 fig, ax = plt.subplots()
 
-ax.plot(x, y, color='r', label=r'measurement')
+ax.plot(x, y, color="r", label=r"measurement")
 
-ax.set_xscale('log')
-ax.set_yscale('log')
+ax.set_xscale("log")
+ax.set_yscale("log")
 
-ax.set_xlim([1e-16, 1e0])
+ax.set_xlim([1e-18, 1e0])
+ax.set_ylim([1e-18, 1e0])
 
-ax.set_xlabel(r'$|| \delta \bm{\varepsilon} ||$')
-ax.set_ylabel(r'$\eta$')
+ax.set_xlabel(r"$|| \delta \bm{\varepsilon} ||$")
+ax.set_ylabel(r"$\eta$")
 
-gplt.plot_powerlaw(-2, 0, 1, 1, axis=ax, units='relative', color='k', linewidth=1,
-                   linestyle='-.', label=r'rounding error $\sim || \delta \bm{\varepsilon} ||^{-2}$')
-gplt.plot_powerlaw(+2, 0, 0, 1, axis=ax, units='relative', color='k', linewidth=1,
-                   linestyle='--', label=r'truncation error $\sim || \delta \bm{\varepsilon} ||^{+2}$')
+gplt.plot_powerlaw(
+    -2,
+    0.0,
+    1.0,
+    0.5,
+    axis=ax,
+    units="relative",
+    color="k",
+    linewidth=1,
+    label=r"rounding error: $|| \delta \bm{\varepsilon} ||^{-2}$",
+)
 
-ax.legend(loc='lower center')
+gplt.plot_powerlaw(
+    +2,
+    0.5,
+    0.0,
+    0.5,
+    axis=ax,
+    units="relative",
+    color="k",
+    linewidth=1,
+    linestyle="--",
+    label=r"linearisation error: $|| \delta \bm{\varepsilon} ||^{+2}$",
+)
 
-plt.savefig('consistency.pdf')
-plt.show()
+ax.legend()
+
+fig.savefig("consistency.pdf")
+plt.close(fig)

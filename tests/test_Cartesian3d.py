@@ -1,17 +1,18 @@
 import unittest
-import numpy as np
+
 import GMatNonLinearElastic.Cartesian3d as GMat
+import numpy as np
+
 
 class Test_main(unittest.TestCase):
-
     def test_NonLinearElastic(self):
 
         shape = [3, 4]
         mat = GMat.NonLinearElastic2d(
-            kappa = np.random.random(shape),
-            sig0 = np.random.random(shape),
-            eps0 = np.random.random(shape),
-            m = np.ones(shape),
+            kappa=np.random.random(shape),
+            sig0=np.random.random(shape),
+            eps0=np.random.random(shape),
+            m=np.ones(shape),
         )
 
         epsm = 0.12
@@ -27,6 +28,7 @@ class Test_main(unittest.TestCase):
 
         self.assertTrue(np.allclose(mat.Sig, Sig))
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
 
     unittest.main()

@@ -1,13 +1,14 @@
-import h5py
-import numpy as np
-import GMatNonLinearElastic.Cartesian3d as GMat
 import unittest
 
-class Test(unittest.TestCase):
+import GMatNonLinearElastic.Cartesian3d as GMat
+import h5py
+import numpy as np
 
+
+class Test(unittest.TestCase):
     def test_main(self):
 
-        with h5py.File('Cartesian3d_random.hdf5') as data:
+        with h5py.File("Cartesian3d_random.hdf5") as data:
 
             kappa = data["kappa"][...]
             sig0 = data["sig0"][...]
@@ -24,11 +25,12 @@ class Test(unittest.TestCase):
 
             for i in range(20):
 
-                                Eps = data[f"/data/{i:d}/Eps"][...]
+                Eps = data[f"/data/{i:d}/Eps"][...]
 
                 self.assertTrue(np.allclose(mat.Stress(Eps), data[f"/data/{i:d}/Stress"][...]))
                 self.assertTrue(np.allclose(mat.Tangent(Eps)[1], data[f"/data/{i:d}/Tangent"][...]))
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
 
     unittest.main()

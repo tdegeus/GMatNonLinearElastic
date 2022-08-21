@@ -66,7 +66,8 @@ auto NonLinearElastic(T& cls)
     cls.def(
         "refresh", &S::refresh, "Recompute stress from strain.", py::arg("compute_tangent") = true);
 
-    cls.def("__repr__", [](const S&) { return "<GMatNonLinearElastic.Cartesian3d.NonLinearElastic>"; });
+    cls.def(
+        "__repr__", [](const S&) { return "<GMatNonLinearElastic.Cartesian3d.NonLinearElastic>"; });
 }
 
 template <class R, class T, class M>

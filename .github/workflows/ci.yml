@@ -16,11 +16,11 @@ jobs:
       matrix:
         runs-on: [ubuntu-latest, macos-latest, windows-latest]
         include:
-          - runs-on: ubuntu-latest
+        - runs-on: ubuntu-latest
           config: -DCMAKE_BUILD_TYPE=Release -DBUILD_ALL=1
-          - runs-on: macos-latest
+        - runs-on: macos-latest
           config: -DCMAKE_BUILD_TYPE=Release -DBUILD_ALL=1
-          - runs-on: windows-latest
+        - runs-on: windows-latest
           config: -DCMAKE_BUILD_TYPE=Release -DBUILD_ALL=1 -G Ninja -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
 
     defaults:
