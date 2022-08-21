@@ -1,28 +1,68 @@
-/*
-
-(c - MIT) T.W.J. de Geus (Tom) | www.geus.me | github.com/tdegeus/GMatNonLinearElastic
-
+/**
+\file
+\copyright Copyright. Tom de Geus. All rights reserved.
+\license This project is released under the MIT License.
 */
 
-#ifndef GMATNONLINEARELASTIC_H
-#define GMATNONLINEARELASTIC_H
+#ifndef GMATNONLINEARELASTIC_CONFIG_H
+#define GMATNONLINEARELASTIC_CONFIG_H
 
+/**
+All assertions are implementation as:
+
+    GMATNONLINEARELASTIC_ASSERT(...)
+
+They can be enabled by:
+
+    #define GMATNONLINEARELASTIC_ENABLE_ASSERT
+
+(before including GMatElastic).
+The advantage is that:
+
+-   File and line-number are displayed if the assertion fails.
+-   Assertions can be enabled/disabled independently from those of other libraries.
+
+\throw std::runtime_error
+*/
 #ifdef GMATNONLINEARELASTIC_ENABLE_ASSERT
+#define GMATNONLINEARELASTIC_ASSERT(expr) GMATTENSOR_ASSERT_IMPL(expr, __FILE__, __LINE__)
+#else
+#define GMATNONLINEARELASTIC_ASSERT(expr)
+#endif
 
-    #define GMATNONLINEARELASTIC_ASSERT(expr) \
-        GMATNONLINEARELASTIC_ASSERT_IMPL(expr, __FILE__, __LINE__)
+/**
+Linear elastoplastic material model.
+*/
+namespace GMATNONLINEARELASTIC {
 
-    #define GMATNONLINEARELASTIC_ASSERT_IMPL(expr, file, line) \
-        if (!(expr)) { \
-            throw std::runtime_error( \
-                std::string(file) + ':' + std::to_string(line) + \
-                ": assertion failed (" #expr ") \n\t"); \
-        }
+/**
+Define container type.
+The default `xt::xtensor` can be changed using:
+
+-   `#define GMATNONLINEARELASTIC_USE_XTENSOR_PYTHON` -> `xt::pytensor`
+*/
+namespace array_type {
+
+#ifdef GMATNONLINEARELASTIC_USE_XTENSOR_PYTHON
+
+/**
+Fixed (static) rank array.
+*/
+template <typename T, size_t N>
+using tensor = xt::pytensor<T, N>;
 
 #else
 
-    #define GMATNONLINEARELASTIC_ASSERT(expr)
+/**
+Fixed (static) rank array.
+*/
+template <typename T, size_t N>
+using tensor = xt::xtensor<T, N>;
 
 #endif
+
+} // namespace array_type
+
+} // namespace GMATNONLINEARELASTIC
 
 #endif
