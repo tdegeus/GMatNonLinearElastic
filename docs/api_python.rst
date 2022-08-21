@@ -13,10 +13,10 @@ Summary
    GMatNonLinearElastic.Cartesian3d.Epseq
    GMatNonLinearElastic.Cartesian3d.sigeq
    GMatNonLinearElastic.Cartesian3d.Sigeq
-   GMatNonLinearElastic.Cartesian3d.Elastic0d
-   GMatNonLinearElastic.Cartesian3d.Elastic1d
-   GMatNonLinearElastic.Cartesian3d.Elastic2d
-   GMatNonLinearElastic.Cartesian3d.Elastic3d
+   GMatNonLinearElastic.Cartesian3d.NonLinearElastic0d
+   GMatNonLinearElastic.Cartesian3d.NonLinearElastic1d
+   GMatNonLinearElastic.Cartesian3d.NonLinearElastic2d
+   GMatNonLinearElastic.Cartesian3d.NonLinearElastic3d
 
 Details
 -------
