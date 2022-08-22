@@ -1,7 +1,7 @@
-/*
-
-(c - MIT) T.W.J. de Geus (Tom) | www.geus.me | github.com/tdegeus/GMatNonLinearElastic
-
+/**
+\file
+\copyright Copyright. Tom de Geus. All rights reserved.
+\license This project is released under the MIT License.
 */
 
 #include <pybind11/pybind11.h>
@@ -9,113 +9,146 @@
 
 #define FORCE_IMPORT_ARRAY
 #include <xtensor-python/pytensor.hpp>
+#include <xtensor-python/xtensor_python_config.hpp> // todo: remove for xtensor-python >0.26.1
 
-#include <GMatNonLinearElastic/version.h>
+#define GMATELASTIC_USE_XTENSOR_PYTHON
+#define GMATNONLINEARELASTIC_USE_XTENSOR_PYTHON
+#define GMATTENSOR_USE_XTENSOR_PYTHON
+#include <GMatElastic/Cartesian3d.h>
+#include <GMatElastic/version.h>
 #include <GMatNonLinearElastic/Cartesian3d.h>
+#include <GMatNonLinearElastic/version.h>
+#include <GMatTensor/Cartesian3d.h>
 
 namespace py = pybind11;
 
-template <class S, class T>
-auto construct_Array(T& self)
-{
-    namespace SM = GMatNonLinearElastic::Cartesian3d;
-
-    self.def(py::init<std::array<size_t, S::rank>>(), "Array of material points.", py::arg("shape"))
-
-        .def("shape", &S::shape, "Shape of array.")
-        .def("I2", &S::I2, "Array with 2nd-order unit tensors.")
-        .def("II", &S::II, "Array with 4th-order tensors = dyadic(I2, I2).")
-        .def("I4", &S::I4, "Array with 4th-order unit tensors.")
-        .def("I4rt", &S::I4rt, "Array with 4th-order right-transposed unit tensors.")
-        .def("I4s", &S::I4s, "Array with 4th-order symmetric projection tensors.")
-        .def("I4d", &S::I4d, "Array with 4th-order deviatoric projection tensors.")
-        .def("kappa", &S::kappa, "Array with kappa.")
-        .def("sig0", &S::sig0, "Array with sig0.")
-        .def("eps0", &S::eps0, "Array with eps0.")
-        .def("m", &S::m, "Array with m.")
-        .def("type", &S::type, "Array with material types.")
-
-        .def(
-            "setNonLinearElastic",
-            &S::setNonLinearElastic,
-            "Set specific entries 'NonLinearElastic'.",
-            py::arg("I"),
-            py::arg("kappa"),
-            py::arg("sig0"),
-            py::arg("eps0"),
-            py::arg("m"))
-
-        .def(
-            "setStrain",
-            &S::setStrain,
-            "Set strain tensors (computes stress and optionally tangent).",
-            py::arg("Eps"),
-            py::arg("compute_tangent") = true)
-
-        .def("Strain", &S::Strain, "Get strain tensors.")
-        .def("Stress", &S::Stress, "Get stress tensors.")
-        .def("Tangent", &S::Tangent, "Get stiffness tensors.")
-        .def("getNonLinearElastic", &S::getNonLinearElastic, "Returns underlying NonLinearElastic model.")
-
-        .def("__repr__", [](const S&) { return "<GMatNonLinearElastic.Cartesian3d.Array>"; });
-}
+namespace my3d {
 
 template <class S, class T>
-void add_deviatoric_overloads(T& module)
+auto NonLinearElastic(T& cls)
 {
-    module.def(
-        "Deviatoric",
-        static_cast<S (*)(const S&)>(&GMatNonLinearElastic::Cartesian3d::Deviatoric<S>),
-        "Deviatoric part of a(n) (array of) tensor(s).",
-        py::arg("A"));
+    cls.def(
+        py::init<
+            const xt::pytensor<double, S::rank>&,
+            const xt::pytensor<double, S::rank>&,
+            const xt::pytensor<double, S::rank>&,
+            const xt::pytensor<double, S::rank>&>(),
+        "Heterogeneous system.",
+        py::arg("kappa"),
+        py::arg("sig0"),
+        py::arg("eps0"),
+        py::arg("m"));
+
+    cls.def_property_readonly("shape", &S::shape, "Shape of array.");
+    cls.def_property_readonly("shape_tensor2", &S::shape_tensor2, "Array of rank 2 tensors.");
+    cls.def_property_readonly("shape_tensor4", &S::shape_tensor4, "Array of rank 4 tensors.");
+    cls.def_property_readonly("kappa", &S::kappa, "Bulk modulus.");
+    cls.def_property_readonly("sig0", &S::sig0, "Reference stress.");
+    cls.def_property_readonly("eps0", &S::eps0, "Reference strain.");
+    cls.def_property_readonly("m", &S::m, "Exponent.");
+    cls.def_property_readonly("Sig", &S::Sig, "Stress tensor.");
+    cls.def_property_readonly("C", &S::C, "Tangent tensor.");
+
+    cls.def_property(
+        "Eps",
+        static_cast<xt::pytensor<double, S::rank + 2>& (S::*)()>(&S::Eps),
+        static_cast<void (S::*)(const xt::pytensor<double, S::rank + 2>&)>(&S::set_Eps),
+        "Strain tensor");
+
+    cls.def(
+        "set_Eps",
+        py::overload_cast<const xt::pytensor<double, S::rank + 2>&, bool>(
+            &S::template set_Eps<xt::pytensor<double, S::rank + 2>>),
+        "Overwrite strain tensor.",
+        py::arg("arg"),
+        py::arg("compute_tangent") = true);
+
+    cls.def(
+        "refresh", &S::refresh, "Recompute stress from strain.", py::arg("compute_tangent") = true);
+
+    cls.def(
+        "__repr__", [](const S&) { return "<GMatNonLinearElastic.Cartesian3d.NonLinearElastic>"; });
 }
 
-template <class R, class S, class T>
-void add_hydrostatic_overloads(T& module)
+template <class R, class T, class M>
+void Epseq(M& mod)
 {
-    module.def(
-        "Hydrostatic",
-        static_cast<R (*)(const S&)>(&GMatNonLinearElastic::Cartesian3d::Hydrostatic<S>),
-        "Hydrostatic part of a(n) (array of) tensor(s).",
-        py::arg("A"));
-}
-
-template <class R, class S, class T>
-void add_epseq_overloads(T& module)
-{
-    module.def(
+    mod.def(
         "Epseq",
-        static_cast<R (*)(const S&)>(
-            &GMatNonLinearElastic::Cartesian3d::Epseq<S>),
+        static_cast<R (*)(const T&)>(&GMatElastic::Cartesian3d::Epseq),
         "Equivalent strain of a(n) (array of) tensor(s).",
         py::arg("A"));
 }
 
-template <class R, class S, class T>
-void add_sigeq_overloads(T& module)
+template <class R, class T, class M>
+void epseq(M& mod)
 {
-    module.def(
+    mod.def(
+        "epseq",
+        static_cast<void (*)(const T&, R&)>(&GMatElastic::Cartesian3d::epseq),
+        "Equivalent strain of a(n) (array of) tensor(s).",
+        py::arg("A"),
+        py::arg("ret"));
+}
+
+template <class R, class T, class M>
+void Sigeq(M& mod)
+{
+    mod.def(
         "Sigeq",
-        static_cast<R (*)(const S&)>(
-            &GMatNonLinearElastic::Cartesian3d::Sigeq<S>),
+        static_cast<R (*)(const T&)>(&GMatElastic::Cartesian3d::Sigeq),
         "Equivalent stress of a(n) (array of) tensor(s).",
         py::arg("A"));
 }
 
+template <class R, class T, class M>
+void sigeq(M& mod)
+{
+    mod.def(
+        "sigeq",
+        static_cast<void (*)(const T&, R&)>(&GMatElastic::Cartesian3d::sigeq),
+        "Equivalent stress of a(n) (array of) tensor(s).",
+        py::arg("A"),
+        py::arg("ret"));
+}
+
+} // namespace my3d
+
+/**
+Overrides the `__name__` of a module.
+Classes defined by pybind11 use the `__name__` of the module as of the time they are defined,
+which affects the `__repr__` of the class type objects.
+*/
+class ScopedModuleNameOverride {
+public:
+    explicit ScopedModuleNameOverride(py::module m, std::string name) : module_(std::move(m))
+    {
+        original_name_ = module_.attr("__name__");
+        module_.attr("__name__") = name;
+    }
+    ~ScopedModuleNameOverride()
+    {
+        module_.attr("__name__") = original_name_;
+    }
+
+private:
+    py::module module_;
+    py::object original_name_;
+};
 
 PYBIND11_MODULE(_GMatNonLinearElastic, m)
 {
+    ScopedModuleNameOverride name_override(m, "GMatNonLinearElastic");
+
     xt::import_numpy();
 
-    m.doc() = "Non-linear elastic material model";
+    m.doc() = "Elasto-plastic material model";
+    m.def("version", &GMatElastic::version, "Return version string.");
 
-    m.def("version",
-          &GMatNonLinearElastic::version,
-          "Return version string.");
-
-    m.def("version_dependencies",
-          &GMatNonLinearElastic::version_dependencies,
-          "Return list of strings.");
+    m.def(
+        "version_dependencies",
+        &GMatElastic::version_dependencies,
+        "List of version strings, include dependencies.");
 
     // --------------------------------
     // GMatNonLinearElastic.Cartesian3d
@@ -125,75 +158,40 @@ PYBIND11_MODULE(_GMatNonLinearElastic, m)
 
     namespace SM = GMatNonLinearElastic::Cartesian3d;
 
-    // Unit tensors
-
-    sm.def("I2", &SM::I2, "Second order unit tensor.");
-    sm.def("II", &SM::II, "Fourth order tensor with the result of the dyadic product II.");
-    sm.def("I4", &SM::I4, "Fourth order unit tensor.");
-    sm.def("I4rt", &SM::I4rt, "Fourth right-transposed order unit tensor.");
-    sm.def("I4s", &SM::I4s, "Fourth order symmetric projection tensor.");
-    sm.def("I4d", &SM::I4d, "Fourth order deviatoric projection tensor.");
-
     // Tensor algebra
 
-    add_deviatoric_overloads<xt::xtensor<double, 4>>(sm);
-    add_deviatoric_overloads<xt::xtensor<double, 3>>(sm);
-    add_deviatoric_overloads<xt::xtensor<double, 2>>(sm);
-    add_hydrostatic_overloads<xt::xtensor<double, 2>, xt::xtensor<double, 4>>(sm);
-    add_hydrostatic_overloads<xt::xtensor<double, 1>, xt::xtensor<double, 3>>(sm);
-    add_hydrostatic_overloads<xt::xtensor<double, 0>, xt::xtensor<double, 2>>(sm);
-    add_epseq_overloads<xt::xtensor<double, 2>, xt::xtensor<double, 4>>(sm);
-    add_epseq_overloads<xt::xtensor<double, 1>, xt::xtensor<double, 3>>(sm);
-    add_epseq_overloads<xt::xtensor<double, 0>, xt::xtensor<double, 2>>(sm);
-    add_sigeq_overloads<xt::xtensor<double, 2>, xt::xtensor<double, 4>>(sm);
-    add_sigeq_overloads<xt::xtensor<double, 1>, xt::xtensor<double, 3>>(sm);
-    add_sigeq_overloads<xt::xtensor<double, 0>, xt::xtensor<double, 2>>(sm);
+    my3d::Epseq<xt::pytensor<double, 2>, xt::pytensor<double, 4>>(sm);
+    my3d::Epseq<xt::pytensor<double, 1>, xt::pytensor<double, 3>>(sm);
+    my3d::Epseq<xt::pytensor<double, 0>, xt::pytensor<double, 2>>(sm);
 
-    // Material point: NonLinearElastic
+    my3d::epseq<xt::pytensor<double, 2>, xt::pytensor<double, 4>>(sm);
+    my3d::epseq<xt::pytensor<double, 1>, xt::pytensor<double, 3>>(sm);
+    my3d::epseq<xt::pytensor<double, 0>, xt::pytensor<double, 2>>(sm);
 
-    py::class_<SM::NonLinearElastic>(sm, "NonLinearElastic")
+    my3d::Sigeq<xt::pytensor<double, 2>, xt::pytensor<double, 4>>(sm);
+    my3d::Sigeq<xt::pytensor<double, 1>, xt::pytensor<double, 3>>(sm);
+    my3d::Sigeq<xt::pytensor<double, 0>, xt::pytensor<double, 2>>(sm);
 
-        .def(py::init<double, double, double, double>(),
-            "Non-linear elastic material point",
-            py::arg("kappa"),
-            py::arg("sig0"),
-            py::arg("eps0"),
-            py::arg("m"))
+    my3d::sigeq<xt::pytensor<double, 2>, xt::pytensor<double, 4>>(sm);
+    my3d::sigeq<xt::pytensor<double, 1>, xt::pytensor<double, 3>>(sm);
+    my3d::sigeq<xt::pytensor<double, 0>, xt::pytensor<double, 2>>(sm);
 
-        .def("kappa", &SM::NonLinearElastic::kappa, "Returns the bulk modulus.")
-        .def("sig0", &SM::NonLinearElastic::sig0, "Returns the reference stress.")
-        .def("eps0", &SM::NonLinearElastic::eps0, "Returns the reference strain.")
-        .def("m", &SM::NonLinearElastic::m, "Returns the exponent.")
+    // NonLinearElastic
 
-        .def(
-            "setStrain",
-            &SM::NonLinearElastic::setStrain<xt::xtensor<double, 2>>,
-            "Set current strain tensor (computes stress and optionally tangent).",
-            py::arg("Eps"),
-            py::arg("compute_tangent") = true)
+    py::class_<SM::NonLinearElastic<0>, GMatTensor::Cartesian3d::Array<0>> array0d(
+        sm, "NonLinearElastic0d");
 
-        .def("Strain", &SM::NonLinearElastic::Strain, "Returns strain tensor.")
-        .def("Stress", &SM::NonLinearElastic::Stress, "Returns stress tensor.")
-        .def("Tangent", &SM::NonLinearElastic::Tangent, "Returns tangent stiffness.")
+    py::class_<SM::NonLinearElastic<1>, GMatTensor::Cartesian3d::Array<1>> array1d(
+        sm, "NonLinearElastic1d");
 
-        .def("__repr__", [](const SM::NonLinearElastic&) {
-            return "<GMatNonLinearElastic.Cartesian3d.NonLinearElastic>";
-        });
+    py::class_<SM::NonLinearElastic<2>, GMatTensor::Cartesian3d::Array<2>> array2d(
+        sm, "NonLinearElastic2d");
 
-    py::module smm = sm.def_submodule("Type", "Type enumerator");
+    py::class_<SM::NonLinearElastic<3>, GMatTensor::Cartesian3d::Array<3>> array3d(
+        sm, "NonLinearElastic3d");
 
-    py::enum_<SM::Type::Value>(smm, "Type")
-        .value("Unset", SM::Type::Unset)
-        .value("NonLinearElastic", SM::Type::NonLinearElastic)
-        .export_values();
-
-    // Array
-
-    py::class_<SM::Array<1>> array1d(sm, "Array1d");
-    py::class_<SM::Array<2>> array2d(sm, "Array2d");
-    py::class_<SM::Array<3>> array3d(sm, "Array3d");
-
-    construct_Array<SM::Array<1>>(array1d);
-    construct_Array<SM::Array<2>>(array2d);
-    construct_Array<SM::Array<3>>(array3d);
+    my3d::NonLinearElastic<SM::NonLinearElastic<0>>(array0d);
+    my3d::NonLinearElastic<SM::NonLinearElastic<1>>(array1d);
+    my3d::NonLinearElastic<SM::NonLinearElastic<2>>(array2d);
+    my3d::NonLinearElastic<SM::NonLinearElastic<3>>(array3d);
 }

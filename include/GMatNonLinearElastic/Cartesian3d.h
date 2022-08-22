@@ -1,164 +1,47 @@
-/*
-
-(c - MIT) T.W.J. de Geus (Tom) | www.geus.me | github.com/tdegeus/GMatNonLinearElastic
-
+/**
+\file
+\copyright Copyright. Tom de Geus. All rights reserved.
+\license This project is released under the MIT License.
 */
 
 #ifndef GMATNONLINEARELASTIC_CARTESIAN3D_H
 #define GMATNONLINEARELASTIC_CARTESIAN3D_H
 
+#include <GMatElastic/Cartesian3d.h>
 #include <GMatTensor/Cartesian3d.h>
 
 #include "config.h"
+#include "version.h"
 
 namespace GMatNonLinearElastic {
+
+/**
+Implementation in a 3-d Cartesian coordinate frame.
+*/
 namespace Cartesian3d {
 
-// Unit tensors
+using GMatElastic::Cartesian3d::epseq;
+using GMatElastic::Cartesian3d::Epseq;
+using GMatElastic::Cartesian3d::sigeq;
+using GMatElastic::Cartesian3d::Sigeq;
 
-using GMatTensor::Cartesian3d::O2;
-using GMatTensor::Cartesian3d::O4;
-using GMatTensor::Cartesian3d::I2;
-using GMatTensor::Cartesian3d::II;
-using GMatTensor::Cartesian3d::I4;
-using GMatTensor::Cartesian3d::I4rt;
-using GMatTensor::Cartesian3d::I4s;
-using GMatTensor::Cartesian3d::I4d;
+/**
+Array of material points with a linear elasto-plastic constitutive response with linear hardening.
 
-// Tensor decomposition
-
-using GMatTensor::Cartesian3d::hydrostatic;
-using GMatTensor::Cartesian3d::Hydrostatic;
-using GMatTensor::Cartesian3d::deviatoric;
-using GMatTensor::Cartesian3d::Deviatoric;
-
-// Equivalent strain
-
-template <class T, class U>
-inline void epseq(const T& A, U& ret);
-
-template <class T>
-inline auto Epseq(const T& A);
-
-// Equivalent stress
-
-template <class T, class U>
-inline void sigeq(const T& A, U& ret);
-
-template <class T>
-inline auto Sigeq(const T& A);
-
-// Material point
-
-class NonLinearElastic
-{
-public:
-    NonLinearElastic() = default;
-    NonLinearElastic(double kappa, double sig0, double eps0, double m);
-
-    double kappa() const;
-    double sig0() const;
-    double eps0() const;
-    double m() const;
-
-    template <class T> void setStrain(const T& arg, bool compute_tangent = true);
-    template <class T> void strain(T& ret) const;
-    template <class T> void stress(T& ret) const;
-    template <class T> void tangent(T& ret) const;
-
-    template <class T> void setStrainPtr(const T* arg, bool compute_tangent = true);
-    template <class T> void strainPtr(T* ret) const;
-    template <class T> void stressPtr(T* ret) const;
-    template <class T> void tangentPtr(T* ret) const;
-
-    xt::xtensor<double, 2> Strain() const;
-    xt::xtensor<double, 2> Stress() const;
-    xt::xtensor<double, 4> Tangent() const;
-
-private:
-    double m_kappa;
-    double m_sig0;
-    double m_eps0;
-    double m_m;
-    std::array<double, 9> m_Eps; // strain tensor [xx, xy, xz, yx, yy, yz, zx, zy, zz]
-    std::array<double, 9> m_Sig; // stress tensor [xx, xy, xz, yx, yy, yz, zx, zy, zz]
-    xt::xtensor<double, 4> m_C; // tangent stiffness
-};
-
-// Material identifier
-
-struct Type {
-    enum Value {
-        Unset,
-        NonLinearElastic,
-    };
-};
-
-// Array of material points
-
+\tparam N Rank of the array.
+*/
 template <size_t N>
-class Array : public GMatTensor::Cartesian3d::Array<N>
-{
-public:
-    using GMatTensor::Cartesian3d::Array<N>::rank;
-
-    // Constructors
-
-    Array() = default;
-    Array(const std::array<size_t, N>& shape);
-    Array(const std::array<size_t, N>& shape, double kappa, double sig0, double eps0, double m);
-
-    // Overloaded methods:
-    // - "shape"
-    // - unit tensors: "I2", "II", "I4", "I4rt", "I4s", "I4d"
-
-    // Type
-
-    xt::xtensor<size_t, N> type() const;
-
-    // Parameters
-
-    xt::xtensor<double, N> kappa() const;
-    xt::xtensor<double, N> sig0() const;
-    xt::xtensor<double, N> eps0() const;
-    xt::xtensor<double, N> m() const;
-
-    // Set parameters for a batch of points
-
-    void setNonLinearElastic(
-        const xt::xtensor<size_t, N>& I,
-        double kappa,
-        double sig0,
-        double eps0,
-        double m);
-
-    // Set strain tensor, get the response
-
-    void setStrain(const xt::xtensor<double, N + 2>& arg, bool compute_tangent = true);
-    void strain(xt::xtensor<double, N + 2>& ret) const;
-    void stress(xt::xtensor<double, N + 2>& ret) const;
-    void tangent(xt::xtensor<double, N + 4>& ret) const;
-
-    // Auto-allocation of the functions above
-
-    xt::xtensor<double, N + 2> Strain() const;
-    xt::xtensor<double, N + 2> Stress() const;
-    xt::xtensor<double, N + 4> Tangent() const;
-
-    // Get copy or reference to the underlying model at on point
-
-    auto getNonLinearElastic(const std::array<size_t, N>& index) const;
-    auto* refNonLinearElastic(const std::array<size_t, N>& index);
-
+class NonLinearElastic : public GMatElastic::Cartesian3d::Elastic<N> {
 private:
-    // Material vectors
-    std::vector<NonLinearElastic> m_NonLinearElastic;
+    array_type::tensor<double, N> m_kappa; ///< Bulk modulus per item.
+    array_type::tensor<double, N> m_sig0; ///< Reference stress per item.
+    array_type::tensor<double, N> m_eps0; ///< Reference strain per item.
+    array_type::tensor<double, N> m_m; ///< Exponent per item.
 
-    // Identifiers for each matrix entry
-    xt::xtensor<size_t, N> m_type;  // type (e.g. "Type::Elastic")
-    xt::xtensor<size_t, N> m_index; // index from the relevant material vector (e.g. "m_Elastic")
+    using GMatElastic::Cartesian3d::Elastic<N>::m_Eps;
+    using GMatElastic::Cartesian3d::Elastic<N>::m_Sig;
+    using GMatElastic::Cartesian3d::Elastic<N>::m_C;
 
-    // Shape
     using GMatTensor::Cartesian3d::Array<N>::m_ndim;
     using GMatTensor::Cartesian3d::Array<N>::m_stride_tensor2;
     using GMatTensor::Cartesian3d::Array<N>::m_stride_tensor4;
@@ -166,13 +49,161 @@ private:
     using GMatTensor::Cartesian3d::Array<N>::m_shape;
     using GMatTensor::Cartesian3d::Array<N>::m_shape_tensor2;
     using GMatTensor::Cartesian3d::Array<N>::m_shape_tensor4;
+
+    using GMatElastic::Cartesian3d::Elastic<N>::energy;
+    using GMatElastic::Cartesian3d::Elastic<N>::K;
+    using GMatElastic::Cartesian3d::Elastic<N>::G;
+
+public:
+    using GMatElastic::Cartesian3d::Elastic<N>::rank;
+
+    NonLinearElastic() = default;
+
+    /**
+    Construct system.
+    \param kappa Bulk modulus per item.
+    \param sig0 Reference stress per item.
+    \param eps0 Reference strain per item.
+    \param m Exponent per item.
+    */
+    template <class T>
+    NonLinearElastic(const T& kappa, const T& sig0, const T& eps0, const T& m)
+    {
+        GMATELASTIC_ASSERT(xt::has_shape(kappa, sig0.shape()));
+        GMATELASTIC_ASSERT(xt::has_shape(kappa, eps0.shape()));
+        GMATELASTIC_ASSERT(xt::has_shape(kappa, m.shape()));
+
+        // allocating parent class
+        std::copy(kappa.shape().cbegin(), kappa.shape().cend(), m_shape.begin());
+        this->init(m_shape);
+
+        m_kappa = kappa;
+        m_sig0 = sig0;
+        m_eps0 = eps0;
+        m_m = m;
+
+        m_Eps = xt::zeros<double>(m_shape_tensor2);
+        m_Sig = xt::empty<double>(m_shape_tensor2);
+        m_C = xt::empty<double>(m_shape_tensor4);
+
+        this->refresh(true); // initialise tangent
+    }
+
+    /**
+    Bulk modulus per item.
+    \return [shape()].
+    */
+    const array_type::tensor<double, N>& kappa() const
+    {
+        return m_kappa;
+    }
+
+    /**
+    Shear modulus per item.
+    \return [shape()].
+    */
+    const array_type::tensor<double, N>& sig0() const
+    {
+        return m_sig0;
+    }
+
+    /**
+    Initial yield stress per item.
+    \return [shape()].
+    */
+    const array_type::tensor<double, N>& eps0() const
+    {
+        return m_eps0;
+    }
+
+    /**
+    Hardening modulus per item.
+    \return [shape()].
+    */
+    const array_type::tensor<double, N>& m() const
+    {
+        return m_m;
+    }
+
+    void refresh(bool compute_tangent = true) override
+    {
+        namespace GT = GMatTensor::Cartesian3d::pointer;
+
+#pragma omp parallel
+        {
+            auto II = GMatTensor::Cartesian3d::II();
+            auto I4d = GMatTensor::Cartesian3d::I4d();
+
+            double kappa;
+            double sig0;
+            double eps0;
+            double m;
+
+            auto Eps = xt::adapt(m_Eps.data(), {m_ndim, m_ndim});
+            auto Sig = xt::adapt(m_Sig.data(), {m_ndim, m_ndim});
+            auto C = xt::adapt(m_C.data(), {m_ndim, m_ndim, m_ndim, m_ndim});
+
+            std::array<double, 9> Epsd;
+
+#pragma omp for
+            for (size_t i = 0; i < m_size; ++i) {
+
+                kappa = m_kappa.flat(i);
+                sig0 = m_sig0.flat(i);
+                eps0 = m_eps0.flat(i);
+                m = m_m.flat(i);
+
+                Eps.reset_buffer(&m_Eps.flat(i * m_stride_tensor2), m_stride_tensor2);
+                Sig.reset_buffer(&m_Sig.flat(i * m_stride_tensor2), m_stride_tensor2);
+                C.reset_buffer(&m_C.flat(i * m_stride_tensor4), m_stride_tensor4);
+
+                double epsm = GT::Hydrostatic_deviatoric(Eps.data(), &Epsd[0]);
+                double epseq = std::sqrt(2.0 / 3.0 * GT::A2s_ddot_B2s(&Epsd[0], &Epsd[0]));
+
+                if (epseq != 0.0) {
+                    double f = 2.0 / 3.0 * sig0 / std::pow(eps0, m) * std::pow(epseq, m - 1.0);
+                    Sig.flat(0) = f * Epsd[0] + 3.0 * kappa * epsm;
+                    Sig.flat(1) = f * Epsd[1];
+                    Sig.flat(2) = f * Epsd[2];
+                    Sig.flat(3) = f * Epsd[3];
+                    Sig.flat(4) = f * Epsd[4] + 3.0 * kappa * epsm;
+                    Sig.flat(5) = f * Epsd[5];
+                    Sig.flat(6) = f * Epsd[6];
+                    Sig.flat(7) = f * Epsd[7];
+                    Sig.flat(8) = f * Epsd[8] + 3.0 * kappa * epsm;
+                }
+                else {
+                    Sig.flat(0) = 3.0 * kappa * epsm;
+                    Sig.flat(1) = 0.0;
+                    Sig.flat(2) = 0.0;
+                    Sig.flat(3) = 0.0;
+                    Sig.flat(4) = 3.0 * kappa * epsm;
+                    Sig.flat(5) = 0.0;
+                    Sig.flat(6) = 0.0;
+                    Sig.flat(7) = 0.0;
+                    Sig.flat(8) = 3.0 * kappa * epsm;
+                }
+
+                if (!compute_tangent) {
+                    return;
+                }
+
+                if (epseq != 0.0) {
+                    GT::A2_dyadic_B2(&Epsd[0], &Epsd[0], C.data());
+                    C *= 2.0 / 3.0 * (m - 1.0) * std::pow(epseq, m - 3.0);
+                    C += std::pow(epseq, m - 1.0) * I4d;
+                    C *= 2.0 / 3.0 * sig0 / std::pow(eps0, m);
+                    C += kappa * II;
+                }
+                else {
+                    xt::noalias(C) = kappa * II + I4d;
+                }
+            }
+        }
+    }
 };
 
 } // namespace Cartesian3d
 } // namespace GMatNonLinearElastic
-
-#include "Cartesian3d.hpp"
-#include "Cartesian3d_Array.hpp"
-#include "Cartesian3d_NonLinearElastic.hpp"
 
 #endif
