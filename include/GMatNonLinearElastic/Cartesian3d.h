@@ -31,15 +31,16 @@ Array of material points with a linear elasto-plastic constitutive response with
 \tparam N Rank of the array.
 */
 template <size_t N>
-class NonLinearElastic : public GMatTensor::Cartesian3d::Array<N> {
+class NonLinearElastic : public GMatElastic::Cartesian3d::Elastic<N> {
 private:
     array_type::tensor<double, N> m_kappa; ///< Bulk modulus per item.
     array_type::tensor<double, N> m_sig0; ///< Reference stress per item.
     array_type::tensor<double, N> m_eps0; ///< Reference strain per item.
     array_type::tensor<double, N> m_m; ///< Exponent per item.
-    array_type::tensor<double, N + 2> m_Eps; ///< Strain tensor per item.
-    array_type::tensor<double, N + 2> m_Sig; ///< Stress tensor per item.
-    array_type::tensor<double, N + 4> m_C; ///< Tangent per item.
+
+    using GMatElastic::Cartesian3d::Elastic<N>::m_Eps;
+    using GMatElastic::Cartesian3d::Elastic<N>::m_Sig;
+    using GMatElastic::Cartesian3d::Elastic<N>::m_C;
 
     using GMatTensor::Cartesian3d::Array<N>::m_ndim;
     using GMatTensor::Cartesian3d::Array<N>::m_stride_tensor2;
@@ -49,8 +50,12 @@ private:
     using GMatTensor::Cartesian3d::Array<N>::m_shape_tensor2;
     using GMatTensor::Cartesian3d::Array<N>::m_shape_tensor4;
 
+    using GMatElastic::Cartesian3d::Elastic<N>::energy;
+    using GMatElastic::Cartesian3d::Elastic<N>::K;
+    using GMatElastic::Cartesian3d::Elastic<N>::G;
+
 public:
-    using GMatTensor::Cartesian3d::Array<N>::rank;
+    using GMatElastic::Cartesian3d::Elastic<N>::rank;
 
     NonLinearElastic() = default;
 
@@ -120,47 +125,7 @@ public:
         return m_m;
     }
 
-    /**
-    Set strain tensors.
-    Internally, this calls refresh() to update stress.
-    \tparam T e.g. `array_type::tensor<double, N + 2>`
-    \param arg Strain tensor per item [shape(), 3, 3].
-    */
-    template <class T>
-    void set_Eps(const T& arg)
-    {
-        GMATELASTIC_ASSERT(xt::has_shape(arg, m_shape_tensor2));
-        std::copy(arg.cbegin(), arg.cend(), m_Eps.begin());
-        this->refresh();
-    }
-
-    /**
-    Set strain tensors.
-    Internally, this calls refresh() to update stress.
-    \tparam T e.g. `array_type::tensor<double, N + 2>`
-    \param arg Strain tensor per item [shape(), 3, 3].
-    \param compute_tangent Compute tangent.
-    */
-    template <class T>
-    void set_Eps(const T& arg, bool compute_tangent)
-    {
-        GMATELASTIC_ASSERT(xt::has_shape(arg, m_shape_tensor2));
-        std::copy(arg.cbegin(), arg.cend(), m_Eps.begin());
-        this->refresh(compute_tangent);
-    }
-
-    /**
-    Recompute stress from strain.
-    Calling set_Eps() will automatically call refresh().
-
-    From Python this implies that `mat.Eps = ...` will automatically call refresh(),
-    but e.g. `mat.Eps[e, q, ...] = ...` will not.
-
-    Note that you can call this function as often as you like, you will only loose time.
-
-    \param compute_tangent Compute tangent.
-    */
-    void refresh(bool compute_tangent = true)
+    void refresh(bool compute_tangent = true) override
     {
         namespace GT = GMatTensor::Cartesian3d::pointer;
 
@@ -235,43 +200,6 @@ public:
                 }
             }
         }
-    }
-
-    /**
-    Strain tensor per item.
-    \return [shape(), 3, 3].
-    */
-    const array_type::tensor<double, N + 2>& Eps() const
-    {
-        return m_Eps;
-    }
-
-    /**
-    Strain tensor per item.
-    The user is responsible for calling refresh() after modifying entries.
-    \return [shape(), 3, 3].
-    */
-    array_type::tensor<double, N + 2>& Eps()
-    {
-        return m_Eps;
-    }
-
-    /**
-    Stress tensor per item.
-    \return [shape(), 3, 3].
-    */
-    const array_type::tensor<double, N + 2>& Sig() const
-    {
-        return m_Sig;
-    }
-
-    /**
-    Tangent tensor per item.
-    \return [shape(), 3, 3, 3, 3].
-    */
-    const array_type::tensor<double, N + 4>& C() const
-    {
-        return m_C;
     }
 };
 

@@ -150,9 +150,9 @@ PYBIND11_MODULE(_GMatNonLinearElastic, m)
         &GMatElastic::version_dependencies,
         "List of version strings, include dependencies.");
 
-    // -----------------------------
+    // --------------------------------
     // GMatNonLinearElastic.Cartesian3d
-    // -----------------------------
+    // --------------------------------
 
     py::module sm = m.def_submodule("Cartesian3d", "3d Cartesian coordinates");
 
