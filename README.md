@@ -1,10 +1,13 @@
 # GMatNonLinearElastic
 
 [![CI](https://github.com/tdegeus/GMatNonLinearElastic/workflows/CI/badge.svg)](https://github.com/tdegeus/GMatNonLinearElastic/actions)
+[![Doxygen -> gh-pages](https://github.com/tdegeus/GMatNonLinearElastic/workflows/gh-pages/badge.svg)](https://tdegeus.github.io/GMatNonLinearElastic)
+[![Conda Version](https://img.shields.io/conda/vn/conda-forge/gmatnonlinearelastic.svg)](https://anaconda.org/conda-forge/gmatnonlinearelastic)
+[![Conda Version](https://img.shields.io/conda/vn/conda-forge/python-gmatnonlinearelastic.svg)](https://anaconda.org/conda-forge/python-gmatnonlinearelastic)
 
 Non-linear elastic material model.
-An overview of the theory can be found in `docs/readme.tex`
-conveniently compiled to this [PDF](docs/readme.pdf).
+An overview of the theory can be found in `docs/theory/readme.tex`
+conveniently compiled to this [PDF](docs/theory/readme.pdf).
 
 # Disclaimer
 
@@ -73,7 +76,6 @@ To enable them you have to compile on your system, as is discussed next.
 >   Otherwise, a bit of manual labour might be needed to treat the dependencies.
 
 ```bash
-# Download GMatNonLinearElastic
 git checkout https://github.com/tdegeus/GMatNonLinearElastic.git
 cd GMatNonLinearElastic
 
@@ -118,18 +120,6 @@ int main()
 }
 ```
 
-## Debugging
-
-To enable assertions define `GMATNONLINEARELASTIC_ENABLE_ASSERT`
-**before** including *GMatNonLinearElastic* for the first time.
-
-Using *CMake* this can be done using the `GMatNonLinearElastic::assert` target.
-
->   To also enable assertions of *xtensor* also define `XTENSOR_ENABLE_ASSERT`
->   **before** including *xtensor* (and *GMatNonLinearElastic*) for the first time.
->
->   Using *CMake* all assertions are enabled using the `GMatNonLinearElastic::debug` target.
-
 ## Installation
 
 ### Using conda
@@ -170,14 +160,13 @@ target_link_libraries(example PRIVATE GMatNonLinearElastic)
 The following targets are available:
 
 *   `GMatNonLinearElastic`
-    Includes *GMatNonLinearElastic* and the *xtensor* dependency.
+    Includes the library and its dependencies.
 
 *   `GMatNonLinearElastic::assert`
-    Enables assertions by defining `GMATNONLINEARELASTIC_ENABLE_ASSERT`.
+    Enables IO-assertions by defining `GMATNONLINEARELASTIC_ENABLE_ASSERT`.
 
 *   `GMatNonLinearElastic::debug`
-    Enables all assertions by defining
-    `GMATNONLINEARELASTIC_ENABLE_ASSERT` and `XTENSOR_ENABLE_ASSERT`.
+    Enables assertions of all dependencies.
 
 *   `GMatNonLinearElastic::compiler_warings`
     Enables compiler warnings (generic).
@@ -192,6 +181,8 @@ The above example then becomes:
 cmake_minimum_required(VERSION 3.1)
 project(example)
 find_package(GMatNonLinearElastic REQUIRED)
+find_package(xtensor REQUIRED)
+find_package(xsimd REQUIRED)
 add_executable(example example.cpp)
 target_link_libraries(example PRIVATE
     GMatNonLinearElastic
@@ -199,7 +190,7 @@ target_link_libraries(example PRIVATE
     xtensor::use_xsimd)
 ```
 
-See the [documentation of xtensor](https://xtensor.readthedocs.io/en/latest/) concerning optimisation.
+See the [documentation of xtensor](https://xtensor.readthedocs.io/en/latest/).
 
 ## By hand
 
