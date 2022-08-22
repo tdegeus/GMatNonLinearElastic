@@ -143,11 +143,11 @@ PYBIND11_MODULE(_GMatNonLinearElastic, m)
     xt::import_numpy();
 
     m.doc() = "Elasto-plastic material model";
-    m.def("version", &GMatElastic::version, "Return version string.");
+    m.def("version", &GMatNonLinearElastic::version, "Return version string.");
 
     m.def(
         "version_dependencies",
-        &GMatElastic::version_dependencies,
+        &GMatNonLinearElastic::version_dependencies,
         "List of version strings, include dependencies.");
 
     // --------------------------------
