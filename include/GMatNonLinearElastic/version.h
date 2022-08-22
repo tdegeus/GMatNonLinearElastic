@@ -36,7 +36,7 @@ overwrite the automatic version.
 #define GMATNONLINEARELASTIC_VERSION "@PROJECT_VERSION@"
 #endif
 
-namespace GMATNONLINEARELASTIC {
+namespace GMatNonLinearElastic {
 
 /**
 Return version string, e.g. `"0.8.0"`
@@ -52,7 +52,7 @@ Return versions of this library and of all of its dependencies.
 The output is a list of strings:
 
     "gmatelastic=0.2.0",
-    "GMATNONLINEARELASTIC=0.7.0",
+    "gmatnonlinearelastic=0.7.0",
     "gmattensor=0.8.0",
     "xtensor=0.20.1"
 
@@ -63,6 +63,6 @@ inline std::vector<std::string> version_dependencies()
     return GMatTensor::version_dependencies();
 }
 
-} // namespace GMATNONLINEARELASTIC
+} // namespace GMatNonLinearElastic
 
 #endif
