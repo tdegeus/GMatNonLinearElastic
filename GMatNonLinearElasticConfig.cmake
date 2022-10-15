@@ -52,8 +52,8 @@ if(NOT TARGET GMatNonLinearElastic::assert)
     set_property(
         TARGET GMatNonLinearElastic::assert
         PROPERTY INTERFACE_COMPILE_DEFINITIONS
-        GMATNONLINEARELASTIC_ENABLE_ASSERT
-        GMATELASTIC_ENABLE_ASSERT)
+        GMATELASTIC_ENABLE_ASSERT
+        GMATNONLINEARELASTIC_ENABLE_ASSERT)
 endif()
 
 # Define support target "GMatNonLinearElastic::debug"
